@@ -1,1 +1,8 @@
-Flask 
+Flask
+Flask-Login
+Flask-WTF
+Flask-Mail
+SQLAlchemy
+mysql-connector-python
+email-validator
+python-dotenv
