@@ -5,7 +5,6 @@ from flask_login import login_user, logout_user, current_user, login_required
 
 #User Authentification - 1st Task 
 
-
 @app.route("/")
 def home():
  return "Hello World"
