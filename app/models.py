@@ -5,6 +5,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 
 class User(db.Model):
+
+    __tablename__ = 'User'
+    
     userID = db.Column(db.Integer, primary_key=True)
 
     firstName = db.Column(db.String(80))
@@ -47,4 +50,4 @@ class User(db.Model):
             self.lock_until = datetime.now(timezone.utc) + timedelta(days=7)
 
 
-    
+# TO BE DONE -> LOST AND FOUND REPORT MODELS 

@@ -7,3 +7,5 @@ from flask_wtf.file import FileField, FileRequired, FileAllowed
 class LoginForm(FlaskForm):
     userID = StringField('userID', validators=[InputRequired()])
     password = PasswordField('Password', validators=[InputRequired()])
+
+#LOST AND FOUND REPORT FORMS 

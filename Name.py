@@ -1,5 +1,6 @@
 import random
 import csv
+import string
 
 f_names = [
 "Karen","Jake","Michael","Tianna","Daniel","Olivia","Nathan","Isabella","Joshua","Chloe",
@@ -51,6 +52,16 @@ def generate_email(first, last):
     else:
         e_counts[base] += 1
         return f"{base}02@mymona.uwi.edu"
+    
+def generate_password(length=7):
+
+
+    chars = string.ascii_letters + string.digits 
+
+    password = ''.join(random.choice(chars) for _ in range(length))
+
+    return password
+
 
 users = []
 
@@ -59,14 +70,16 @@ for _ in range(100):
     first, last = generate_name()
     email = generate_email(first, last)
     uid = generate_unique_id("620")
-    users.append(["Student", uid, first, last, email])
+    password = generate_password()
+    users.append(["Student", uid, first, last, email, password])
 
 # generate staff
 for _ in range(20):
     first, last = generate_name()
     email = generate_email(first, last)
     uid = generate_unique_id("451")
-    users.append(["Staff", uid, first, last, email])
+    password = generate_password()
+    users.append(["Staff", uid, first, last, email, password])
 
 with open("Users.csv", "w", newline="") as file:
     writer = csv.writer(file)
