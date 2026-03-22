@@ -34,7 +34,7 @@ def admin_dashboard():
 @app.route("/report-lost", methods=["GET", "POST"])
 @login_required
 def report_lost():
-    form = LostReportForm()
+    form = LostItemReportForm()
 
     if form.validate_on_submit():
         lost_item = LostItemReport(
@@ -59,7 +59,7 @@ def report_found():
         flash("Admins only", "danger")
         return redirect(url_for("dashboard"))
 
-    form = FoundReportForm()
+    form = FoundItemReportForm()
 
     if form.validate_on_submit():
         found_item = FoundItemReport(
