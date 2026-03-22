@@ -22,7 +22,6 @@ class LostItemReportForm(FlaskForm):
         ('evidence_bicycles', 'Evidence Bicycles'),
         ('eyewear', 'Eyewear'),
         ('footwear', 'Footwear'),
-        ('found_bicycles', 'Found Bicycles'),
         ('ids_cards', 'IDs & Cards'),
         ('keys', 'Keys'),
         ('misc', 'Miscellaneous'),
