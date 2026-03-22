@@ -51,3 +51,51 @@ class User(db.Model):
 
 
 # TO BE DONE -> LOST AND FOUND REPORT MODELS 
+
+class LostItemReport(db.Model):
+
+    __tablename__ = 'LostItem_Report'
+
+    reportID = db.Column(db.Integer, primary_key=True) #Should be randomly generated
+
+    #date = This should be date time
+    phone = db.Column(db.String(10))
+
+
+class LostItemDescription(db.Model):
+
+    #Ask abt this tmr 
+
+    #itemType 
+    #brand 
+    #color 
+
+    #dateRecieved -> How would we incorporate this in matching 
+    #locationLost -> How would we incorporate this in matching
+
+    pass 
+
+
+class FoundItemReport(db.Model):
+
+    __tablename__ = 'FoundItem_Report'
+
+
+    reportID = db.Column(db.Integer, primary_key=True) #Should be randomly generated
+    #date = This should be date.time
+    phone = db.Column(db.String(10))
+
+    #should we add office location and name to this ? 
+
+class LostItemDescription(db.Model):
+
+    #Ask abt this tmr 
+
+    #itemType 
+    #brand 
+    #color 
+
+    #dateLost -> How would we incorporate this in matching 
+    #locationLost -> How would we incorporate this in matching
+
+    pass 

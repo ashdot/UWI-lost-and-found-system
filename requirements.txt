@@ -6,3 +6,4 @@ SQLAlchemy
 mysql-connector-python
 email-validator
 python-dotenv
+spacy 
