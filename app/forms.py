@@ -13,8 +13,24 @@ class LoginForm(FlaskForm):
 #Gets the details from the person who Lost the Item, this should be attatched to a report ID 
 class LostItemReportForm(FlaskForm): 
 
-    #Ask group members tmr what catergory this should be 
-    #catergory = SelectField 
+    category = SelectField(
+    'Item Category',
+    choices=[
+        ('bags_backpacks', 'Bags & Backpacks'),
+        ('clothing', 'Clothing'),
+        ('computers_electronics', 'Computers & Electronics'),
+        ('evidence_bicycles', 'Evidence Bicycles'),
+        ('eyewear', 'Eyewear'),
+        ('footwear', 'Footwear'),
+        ('found_bicycles', 'Found Bicycles'),
+        ('ids_cards', 'IDs & Cards'),
+        ('keys', 'Keys'),
+        ('misc', 'Miscellaneous'),
+        ('mobile_devices', 'Mobile Devices'),
+        ('transport_devices', 'Transportation Devices'),
+        ('wallets_purses', 'Wallets & Purses'),
+        ('watches_jewelry', 'Watches & Jewelry')
+    ])
 
     phone_number = StringField('Phone', validators=[InputRequired()])
     name = StringField('Name', validators=[InputRequired()])
@@ -26,8 +42,25 @@ class LostItemReportForm(FlaskForm):
 
 class FoundItemReportForm(FlaskForm):
 
-    #Ask group members tmr what catergory this should be 
-    #catergory = SelectField
+    
+    category = SelectField(
+    'Item Category',
+    choices=[
+        ('bags_backpacks', 'Bags & Backpacks'),
+        ('clothing', 'Clothing'),
+        ('computers_electronics', 'Computers & Electronics'),
+        ('evidence_bicycles', 'Evidence Bicycles'),
+        ('eyewear', 'Eyewear'),
+        ('footwear', 'Footwear'),
+        ('found_bicycles', 'Found Bicycles'),
+        ('ids_cards', 'IDs & Cards'),
+        ('keys', 'Keys'),
+        ('misc', 'Miscellaneous'),
+        ('mobile_devices', 'Mobile Devices'),
+        ('transport_devices', 'Transportation Devices'),
+        ('wallets_purses', 'Wallets & Purses'),
+        ('watches_jewelry', 'Watches & Jewelry')
+    ])
 
 
     photo = FileField('File', validators=[FileRequired(),FileAllowed(['jpg', 'png'], 'Images only!')])
