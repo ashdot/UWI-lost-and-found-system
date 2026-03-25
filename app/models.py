@@ -54,48 +54,60 @@ class User(db.Model):
 
 class LostItemReport(db.Model):
 
-    __tablename__ = 'LostItem_Report'
+    __tablename__ = 'lost_item_report'
 
-    reportID = db.Column(db.Integer, primary_key=True) #Should be randomly generated
+    reportID = db.Column(db.Integer, primary_key=True)
 
-    #date = This should be date time
     phone = db.Column(db.String(10))
+
+    date_lost = db.Column(db.DateTime)
+    location_lost = db.Column(db.String(100))
+
+    description = db.relationship('LostItemDescription', backref='report', uselist=False)
 
 
 class LostItemDescription(db.Model):
 
-    #Ask abt this tmr 
+    __tablename__ = 'lost_item_description'
 
-    #itemType 
-    #brand 
-    #color 
+    id = db.Column(db.Integer, primary_key=True)
 
-    #dateRecieved -> How would we incorporate this in matching 
-    #locationLost -> How would we incorporate this in matching
+    item_type = db.Column(db.String(50))
+    brand = db.Column(db.String(50))
+    color = db.Column(db.String(30))
 
-    pass 
+    text_description = db.Column(db.Text)
+    text_embedding = db.Column(db.PickleType)
 
+    report_id = db.Column(db.Integer, db.ForeignKey('lost_item_report.reportID'))
 
 class FoundItemReport(db.Model):
+    __tablename__ = 'found_item_report'
 
-    __tablename__ = 'FoundItem_Report'
+    reportID = db.Column(db.Integer, primary_key=True)
 
-
-    reportID = db.Column(db.Integer, primary_key=True) #Should be randomly generated
-    #date = This should be date.time
     phone = db.Column(db.String(10))
 
-    #should we add office location and name to this ? 
+    date_found = db.Column(db.DateTime)
+    location_found = db.Column(db.String(100))
 
-class LostItemDescription(db.Model):
 
-    #Ask abt this tmr 
+    office_name = db.Column(db.String(100))
+    office_location = db.Column(db.String(100))
 
-    #itemType 
-    #brand 
-    #color 
+    description = db.relationship('FoundItemDescription', backref='report', uselist=False)
 
-    #dateLost -> How would we incorporate this in matching 
-    #locationLost -> How would we incorporate this in matching
+class FoundItemDescription(db.Model):
+    
+    __tablename__ = 'found_item_description'
 
-    pass 
+    id = db.Column(db.Integer, primary_key=True)
+
+    item_type = db.Column(db.String(50))
+    brand = db.Column(db.String(50))
+    color = db.Column(db.String(30))
+
+    text_description = db.Column(db.Text)
+    text_embedding = db.Column(db.PickleType)
+
+    report_id = db.Column(db.Integer, db.ForeignKey('found_item_report.reportID'))
