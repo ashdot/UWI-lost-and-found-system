@@ -1,27 +1,31 @@
 import os
 import spacy
-from app import app, db, login_manager
 from flask import render_template, request, redirect, url_for, flash, session, abort, send_from_directory
 from flask_login import login_user, logout_user, current_user, login_required
+from flask import Blueprint
 from .forms import LostItemReportForm, FoundItemReportForm
 from .models import LostItemReport, FoundItemReport
-from .extension import db
+
+#from .extensions import db
+
+views_bp = Blueprint('views_bp', __name__)
 
 
 #User Authentification - 1st Task 
 
-@app.route("/")
+@views_bp.route("/")
 def home():
  return "Hello World"
 
 
-@app.route("/dashboard")
+@views_bp.route("/dashboard")
 @login_required
 def dashboard():
     return render_template("dashboard.html")
 
 
-@app.route("/admin")
+#Note these only work with the database do not delete and do not change 
+@views_bp.route("/admin")
 @login_required
 def admin_dashboard():
     if current_user.role != "admin":
@@ -31,7 +35,7 @@ def admin_dashboard():
     return render_template("admin.html")
 
 
-@app.route("/report-lost", methods=["GET", "POST"])
+@views_bp.route("/report-lost", methods=["GET", "POST"])
 @login_required
 def report_lost():
     form = LostItemReportForm()
@@ -52,7 +56,7 @@ def report_lost():
     return render_template("report_lost.html", form=form)
 
 
-@app.route("/report-found", methods=["GET", "POST"])
+@views_bp.route("/report-found", methods=["GET", "POST"])
 @login_required
 def report_found():
     if current_user.role != "admin":

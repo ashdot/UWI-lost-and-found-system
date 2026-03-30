@@ -2,8 +2,8 @@ Flask
 Flask-Login
 Flask-WTF
 Flask-Mail
-SQLAlchemy
-mysql-connector-python
+Flask-SQLAlchemy
+psycopg2-binary
 email-validator
 python-dotenv
-spacy 
+spacy
