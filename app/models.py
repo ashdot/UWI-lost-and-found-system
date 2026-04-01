@@ -26,7 +26,7 @@ class User(db.Model):
     def __init__(self, firstName, lastName, role , password):
         self.firstName = firstName
         self.lastName = lastName
-        self.rol = role
+        self.rol = role     #fix spelling 
         self.password = generate_password_hash(password, method='pbkdf2:sha256')
 
 

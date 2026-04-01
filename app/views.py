@@ -14,6 +14,25 @@ from .extension import db
 def home():
  return "Hello World"
 
+"""
+@app.route("/login", methods=['POST', 'GET'])
+def login():
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        userID = form.userID.data
+        password = form.password.data
+
+        user = User.query.filter_ by(userID=userID).first()
+
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            return redirect(url_for("dashboard"))
+        else:
+            flash("Invalid login.Please try again")
+    
+    return render_template("login.html", form=form)
+"""
 
 @app.route("/dashboard")
 @login_required
