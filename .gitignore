@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.env
+*.pyo
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Cloudinary uploads (if stored locally temporarily)
+uploads/
+*.log
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
