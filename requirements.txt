@@ -2,8 +2,13 @@ Flask
 Flask-Login
 Flask-WTF
 Flask-Mail
-Flask-SQLAlchemy
-psycopg2-binary
+SQLAlchemy
+mysql-connector-python
 email-validator
 python-dotenv
 spacy
+cloudinary
+torch
+torchvision
+torchaudio
+git+https://github.com/openai/CLIP.git
