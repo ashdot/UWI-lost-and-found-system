@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<form class="form-login m-auto" method="post">
+    {{ form.csrf_token }}
+    <div class="header">
+        <img src="{{ url_for('static', filename='images/uwi-logo.png')}}" class="uwi-logo">
+        <div class="headings">
+            <br>
+            <h2 class="school">THE UNIVERSITY OF THE WEST INDIES</h2>
+            <p class="campus">MONA CAMPUS, JAMAICA. WEST INDIES</p>
+            <p class="system-name">LOST AND FOUND SYSTEM</p>
+        </div>
+    </div>
+    {% include 'flash_messages.html' %}
+    <div class="form-floating mb-2">
+        {{ form.userID(class='form-control', placeholder="Username") }}
+        {{ form.userID.label() }}
+    </div>
+    <div class="form-floating mb-2">
+        {{ form.password(class='form-control', placeholder="Password") }}
+        {{ form.password.label() }}
+    </div>
+    <!--add forgot password option-->
+    <button class="btn btn-lg btn-primary w-100 mt-2" type="submit">Log in</button>
+</form>
+{% endblock %}

@@ -1,0 +1,77 @@
+body {
+    margin: 0;
+    height: 100vh;
+    background: url('/static/images/login-background.png') no-repeat center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+.form-login {
+    width: 50vw;
+    padding: 30px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid white;
+    color: white;
+}
+
+.header{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+  
+.uwi-logo {
+    width: auto;
+    height: 100px;
+}
+
+.headings h2, p {
+    margin: 0;
+    line-height: 1.1;
+}
+
+.school {
+    padding-top: 10px;
+    font-size: 21px;
+    font-weight: 600;
+    color: black;
+}
+
+.campus {
+    font-size: 18px;
+    color: black;
+    font-weight: 300;
+}
+
+.system-name{
+    font-size: 18px;
+    color: black;
+    font-weight:bold;
+}
+
+.form-control {
+    border-radius: 12px;
+    border: 1px solid darkgrey;
+    color: white;
+}
+  
+.btn-primary {
+    background: linear-gradient(to bottom right, #79fcfc, #0003c8);
+    opacity: 0.8;
+    border: none;
+    border-radius: 12px;
+    font-weight: bold;
+    color: white;
+}
+  
+.btn-primary:hover {
+    opacity: 1;
+}
+
+/*work on making it more responsive next*/
