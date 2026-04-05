@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>UWI FindIt</title>
+
+    <!-- Bootstrap -->
+    <link href="{{ url_for('static', filename="css/bootstrap.min.css") }}" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename="css/app.css") }}">
+    {% block css %} {% endblock%}
+  </head>
+  <body>
+    <main>
+        <div class="container">
+            {% block main %}{% endblock %}
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename="js/bootstrap.min.js") }}"></script>
+    {% block js %} {% endblock%}
+  </body>
+</html>

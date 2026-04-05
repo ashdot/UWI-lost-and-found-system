@@ -1,31 +1,46 @@
 import os
 import spacy
+from app import app, db, login_manager
 from flask import render_template, request, redirect, url_for, flash, session, abort, send_from_directory
 from flask_login import login_user, logout_user, current_user, login_required
-from flask import Blueprint
 from .forms import LostItemReportForm, FoundItemReportForm
 from .models import LostItemReport, FoundItemReport
-
-#from .extensions import db
-
-views_bp = Blueprint('views_bp', __name__)
+from .extensions import db
 
 
 #User Authentification - 1st Task 
 
-@views_bp.route("/")
+@app.route("/")
 def home():
  return "Hello World"
 
+"""
+@app.route("/login", methods=['POST', 'GET'])
+def login():
+    form = LoginForm()
 
-@views_bp.route("/dashboard")
+    if form.validate_on_submit():
+        userID = form.userID.data
+        password = form.password.data
+
+        user = User.query.filter_ by(userID=userID).first()
+
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            return redirect(url_for("dashboard"))
+        else:
+            flash("Invalid login.Please try again")
+    
+    return render_template("login.html", form=form)
+"""
+
+@app.route("/dashboard")
 @login_required
 def dashboard():
     return render_template("dashboard.html")
 
 
-#Note these only work with the database do not delete and do not change 
-@views_bp.route("/admin")
+@app.route("/admin")
 @login_required
 def admin_dashboard():
     if current_user.role != "admin":
@@ -35,7 +50,7 @@ def admin_dashboard():
     return render_template("admin.html")
 
 
-@views_bp.route("/report-lost", methods=["GET", "POST"])
+@app.route("/report-lost", methods=["GET", "POST"])
 @login_required
 def report_lost():
     form = LostItemReportForm()
@@ -56,7 +71,7 @@ def report_lost():
     return render_template("report_lost.html", form=form)
 
 
-@views_bp.route("/report-found", methods=["GET", "POST"])
+@app.route("/report-found", methods=["GET", "POST"])
 @login_required
 def report_found():
     if current_user.role != "admin":
