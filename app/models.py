@@ -1,8 +1,9 @@
-from . import db
+from flask_login import UserMixin
+from .extensions import db
 from datetime import datetime, timedelta, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
 
-class User(db.Model):
+class User(UserMixin,db.Model):
 
     __tablename__ = 'User'
     
@@ -17,15 +18,18 @@ class User(db.Model):
     role = db.Column(db.String(50))
 
 
-    failed_attempted = db.Column(db.Integer(0))
+    failed_attempted = db.Column(db.Integer, default=0)
 
     lock_until = db.Column(db.DateTime(timezone=True), nullable=True)
 
-    def __init__(self, firstName, lastName, role , password):
+    def __init__(self, userID=None, firstName=None, lastName=None, role=None, password=None):
+        if userID:
+            self.userID = userID
         self.firstName = firstName
         self.lastName = lastName
-        self.rol = role     #fix spelling 
-        self.password = generate_password_hash(password, method='pbkdf2:sha256')
+        self.role = role
+        if password:
+            self.password = generate_password_hash(password, method='pbkdf2:sha256')
 
 
 
@@ -43,9 +47,9 @@ class User(db.Model):
         return False
 
     def register_failed_attempt(self):
-        self.failed_attempts += 1
-        if self.failed_attempts >= 3:
-            self.lock_until = datetime.now(timezone.utc) + timedelta(days=7)
+        self.failed_attempted += 1
+        if self.failed_attempted >= 3:
+            self.lock_until = datetime.now(timezone.utc) + timedelta(minutes=30)
 
 
 # TO BE DONE -> LOST AND FOUND REPORT MODELS 

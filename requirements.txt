@@ -1,11 +1,17 @@
+alembic
+blinker
+click
+colorama
 Flask
 Flask-Login
 Flask-WTF
 Flask-Mail
+Flask-Migrate
 SQLAlchemy
 mysql-connector-python
 email-validator
 python-dotenv
+psycopg2-binary
 spacy
 cloudinary
 torch

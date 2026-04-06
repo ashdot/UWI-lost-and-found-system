@@ -1,20 +1,26 @@
 import os
 from flask import Flask
-from flask import render_template, request, redirect, url_for, flash, session, abort, send_from_directory
-from flask_login import login_user, logout_user, current_user, login_required
-from .extensions import login_manager
+from .extensions import db,login_manager, migrate
 from .views import views_bp
 from .auth import auth_bp 
+from .models import User
+from .config import Config 
+
+
+
 
 
 
 def create_app():
     app = Flask(__name__)
 
-    #For testings
-    app.secret_key = "supersecretkey123"
 
-    # Initialize login manager
+    app.config.from_object(Config)
+
+    db.init_app(app)
+
+    migrate.init_app(app, db)
+
     login_manager.init_app(app)
 
     app.register_blueprint(views_bp)
@@ -22,7 +28,8 @@ def create_app():
 
     print(list(app.url_map.iter_rules()))
 
-    # you can add config here later
-    # app.config['SECRET_KEY'] = 'your-secret-key'
-
     return app
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))  # Flask-Login expects user_id as a string
