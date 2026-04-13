@@ -31,7 +31,7 @@ class LostItemReportForm(FlaskForm):
     ])
 
     phone_number = StringField('Phone', validators=[InputRequired()])
-    
+
     name = StringField('Name', validators=[InputRequired()])
 
     description = TextAreaField('Description',validators=[InputRequired()] ) 

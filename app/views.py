@@ -22,7 +22,7 @@ def dashboard():
 
 
 @views_bp .route("/admin")
-# @login_required #Commented out for testing 
+@login_required #Commented out for testing 
 def admin_dashboard():
     if current_user.role != "admin":
         flash("Access denied", "danger")
@@ -32,6 +32,7 @@ def admin_dashboard():
 
 
 @views_bp.route("/report-lost", methods=["GET", "POST"])
+@login_required 
 def report_lost():
     form = LostItemReportForm()
 
@@ -71,11 +72,11 @@ def report_lost():
 
 
 @views_bp.route("/report-found", methods=["GET", "POST"])
-# @login_required #Commented out for testing 
+@login_required #Commented out for testing 
 def report_found():
     if current_user.role != "admin":
         flash("Admins only", "danger")
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("views_bp.dashboard"))
 
     form = FoundItemReportForm()
 

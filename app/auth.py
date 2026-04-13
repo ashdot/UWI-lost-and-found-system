@@ -4,109 +4,66 @@ from .models import User
 from .forms import LoginForm
 from .extensions import db
 from datetime import datetime, timezone, timedelta
+from werkzeug.security import check_password_hash
+from .models import User
 import os
 
 auth_bp = Blueprint('auth_bp', __name__)
 
-# Verify user from SAAS_Database
-# def verify_user(user_id, user_email, user_password):
-#     file_path = os.path.join(os.getcwd(), "SAAS_Database.txt")
-#     try:
-#         with open(file_path, "r") as file:
-#             for line in file:
-#                 if not line.strip():
-#                     continue
-#                 role, uid, first_name, last_name, email, password = line.strip().split(",")
-#                 if user_id == uid and user_email == email and user_password == password:
-#                     return {
-#                         "role": role,
-#                         "student_id": uid,
-#                         "first_name": first_name,
-#                         "last_name": last_name,
-#                         "email": email
-#                     }
-#     except FileNotFoundError:
-#         print("User not found")
+from werkzeug.security import check_password_hash
+from .models import User 
+
+# def verify_user(user_id, user_password):
+#     user = User.query.filter_by(userID=user_id).first()
+
+
+#     if user and check_password_hash(user.password, user_password):
+#         return {
+#             "role": user.role,
+#             "student_id": user.userID,    # Matches model.userID
+#             "first_name": user.firstName, # Matches model.firstName
+#             "last_name": user.lastName,   # Matches model.lastName
+#             "email": user.email
+#         }
+        
 #     return None
 
 def verify_user(user_id, user_password):
-    file_path = os.path.join(os.getcwd(), "SAAS_Database.txt")
-    try:
-        with open(file_path, "r") as file:
-            for line in file:
-                if not line.strip():
-                    continue
-                role, uid, first_name, last_name, email, password = line.strip().split(",")
-                if user_id == uid and user_password == password:
-                    return {
-                        "role": role,
-                        "student_id": uid,
-                        "first_name": first_name,
-                        "last_name": last_name,
-                        "email": email
-                    }
-    except FileNotFoundError:
-        print("User not found")
+    user = User.query.filter_by(userID=user_id).first()
+    
+    if user:
+        # DEBUG PRINTS - Check your terminal!
+        print(f"DEBUG: Found user {user.userID}")
+        print(f"DEBUG: DB Hash starts with: {user.password[:20]}...")
+        
+        is_valid = check_password_hash(user.password, user_password)
+        print(f"DEBUG: Password match result: {is_valid}")
+        
+        if is_valid:
+            return {
+                "role": user.role,
+                "student_id": user.userID,
+                "first_name": user.firstName,
+                "last_name": user.lastName,
+                "email": user.email
+            }
+    else:
+        print(f"DEBUG: No user found with ID {user_id}")
+        
     return None
-
-# ======= Routes =======
-
-#Create a register route for admin ( ASH MONDAY )
-@auth_bp.route("/register", methods=["GET", "POST"])
-def register():
-
-    pass
-
-
-
-
-
-
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user_id = form.userID.data
-        #user_email = form.email.data
-        user_password = form.password.data
+        user_data = verify_user(form.userID.data, form.password.data)
 
-        user_data = verify_user(user_id, user_password)
-        #user_data = verify_user(user_id, user_email, user_password)
-        #user = User.query.filter_by(email=user_email).first()
-
-        user = User.query.filter_by(userID=user_id).first()
-
-        if not user:
-            #user = User(uid=user_id, email=user_email, role="user")
-            user = User(userID=user_id, role="user")
-            db.session.add(user)
-            db.session.commit()
-
-        # Lock check
-        if user.is_locked():
-            remaining_time = user.lock_until - datetime.now(timezone.utc)
-            minutes = int(remaining_time.total_seconds() // 60)
-            flash(f"Account locked. Try again in {minutes} minutes.", "danger")
-            return redirect(url_for("auth_bp.login"))  # note blueprint prefix
-
-        # Password check
-        if not user_data:
-            user.register_failed_attempt()
-            db.session.commit()
-            flash(f"Invalid credentials ({user.failed_attempted}/3)", "danger")
-            return redirect(url_for("auth_bp.login"))
-
-        # Successful login
-        user.failed_attempted = 0
-        user.lock_until = None
-        user.role = user_data["role"]
-        user.firstName = user_data["first_name"]
-        user.lastName = user_data["last_name"]
-        db.session.commit()
-
-        login_user(user)
-        flash("Login successful!", "success")
-        return redirect(url_for("dashboard"))  # make sure this route exists
+        if user_data:
+            user = User.query.get(user_data["student_id"])
+            login_user(user)
+            flash(f"Hello, {user.firstName}!", "success")
+            return redirect(url_for("views_bp.dashboard"))
+        
+        flash("Invalid ID or Password", "danger")
 
     return render_template("login.html", form=form)

@@ -1,5 +1,6 @@
 from flask_login import UserMixin
 from .extensions import db
+from sqlalchemy import CheckConstraint
 from datetime import datetime, timedelta, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -13,14 +14,20 @@ class User(UserMixin,db.Model):
     lastName = db.Column(db.String(80))
 
     email = db.Column(db.String(100))
-    password = db.Column(db.String(128))
+    password = db.Column(db.String(255))
 
-    role = db.Column(db.String(50))
+    # Updated Role Column
+    role = db.Column(db.String(20), nullable=False)
+
+    # This ensures ONLY these three strings can ever be saved in Postgres
+    __table_args__ = (
+        CheckConstraint(role.in_(['student', 'staff', 'admin']), name='role_types'),
+    )
 
 
-    failed_attempted = db.Column(db.Integer, default=0)
+    #failed_attempted = db.Column(db.Integer, default=0) #Causing issues so commented out 
 
-    lock_until = db.Column(db.DateTime(timezone=True), nullable=True)
+    #lock_until = db.Column(db.DateTime(timezone=True), nullable=True) #Causing issues so commented out 
 
     def __init__(self, userID=None, firstName=None, lastName=None, email=None, role=None, password=None):
         if userID:
@@ -34,7 +41,9 @@ class User(UserMixin,db.Model):
         if password:
             self.password = generate_password_hash(password, method='pbkdf2:sha256')
 
-
+    
+    def get_id(self):
+        return str(self.userID)
 
     #PASSWORD METHODS 
 
