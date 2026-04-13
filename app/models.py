@@ -22,12 +22,15 @@ class User(UserMixin,db.Model):
 
     lock_until = db.Column(db.DateTime(timezone=True), nullable=True)
 
-    def __init__(self, userID=None, firstName=None, lastName=None, role=None, password=None):
+    def __init__(self, userID=None, firstName=None, lastName=None, email=None, role=None, password=None):
         if userID:
             self.userID = userID
+
         self.firstName = firstName
         self.lastName = lastName
+        self.email = email
         self.role = role
+
         if password:
             self.password = generate_password_hash(password, method='pbkdf2:sha256')
 
@@ -68,6 +71,7 @@ class LostItemReport(db.Model):
     description = db.relationship('LostItemDescription', backref='report', uselist=False)
 
 
+#Add photo column to this to store photos 
 class LostItemDescription(db.Model):
 
     __tablename__ = 'lost_item_description'

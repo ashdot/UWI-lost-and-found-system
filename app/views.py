@@ -7,7 +7,7 @@ from .models import LostItemReport, FoundItemReport
 from .extensions import login_manager, db 
 
 
-views_bp = Blueprint('views', __name__)
+views_bp = Blueprint('views_bp', __name__)
 
 #User Authentification - 1st Task 
 
@@ -51,7 +51,7 @@ def admin_dashboard():
     return render_template("admin.html")
 
 
-@views_bp .route("/report-lost", methods=["GET", "POST"])
+@views_bp.route("/report-lost", methods=["GET", "POST"])
 @login_required
 def report_lost():
     form = LostItemReportForm()

@@ -6,7 +6,7 @@ from .extensions import db
 from datetime import datetime, timezone, timedelta
 import os
 
-auth_bp = Blueprint('auth', __name__)
+auth_bp = Blueprint('auth_bp', __name__)
 
 # Verify user from SAAS_Database
 # def verify_user(user_id, user_email, user_password):
@@ -75,14 +75,14 @@ def login():
             remaining_time = user.lock_until - datetime.now(timezone.utc)
             minutes = int(remaining_time.total_seconds() // 60)
             flash(f"Account locked. Try again in {minutes} minutes.", "danger")
-            return redirect(url_for("auth.login"))  # note blueprint prefix
+            return redirect(url_for("auth_bp.login"))  # note blueprint prefix
 
         # Password check
         if not user_data:
             user.register_failed_attempt()
             db.session.commit()
             flash(f"Invalid credentials ({user.failed_attempted}/3)", "danger")
-            return redirect(url_for("auth.login"))
+            return redirect(url_for("auth_bp.login"))
 
         # Successful login
         user.failed_attempted = 0

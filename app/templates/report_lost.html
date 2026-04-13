@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block main %}
+{% include 'flash_messages.html' %}
+
+<div class="container py-5 d-flex justify-content-center">
+     <div class="form-card p-4">
+        
+          <h2 class="mb-4">Lost Item Report Form</h2>
+
+          <form method="POST" enctype="multipart/form-data">      
+               {{ form.csrf_token }}
+
+               <!--Category field-->
+               <div class="mb-3">
+                    {{ form.category.label(class="form-label") }}
+                    {{ form.category(class="form-select" + (" is-invalid" if form.category.errors else "")) }}
+                    {% for error in form.category.errors %}
+                         <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+               </div>
+
+               <!--Description field-->
+               <div class="mb-3">
+                    {{ form.description.label(class="form-label") }}
+                    {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows=5) }}
+                    {% for error in form.description.errors %}
+                         <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+               </div>
+               
+               <!--Photo field-->
+               <div class="mb-3">
+                    {{ form.photo.label(class="form-label") }}
+                    {{ form.photo(class="form-control" + (" is-invalid" if form.photo.errors else "")) }}
+                    {% for error in form.photo.errors %}
+                         <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+               </div>
+
+               
+               <h3 class="mb-4">Contact info</h2>
+
+               <div class="row mb-3">
+                
+                    <!--Name field-->
+                    <div class="col-6">
+                         {{ form.name.label(class="form-label") }}
+                         {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+                         {% for error in form.name.errors %}
+                              <div class="invalid-feedback">{{ error }}</div>
+                         {% endfor %}
+                    </div>
+                    
+                    <!--Phone number field-->
+                     <div class="col-6">
+                         {{ form.phone_number.label(class="form-label") }}
+                         {{ form.phone_number(class="form-select" + (" is-invalid" if form.phone_number.errors else "")) }}
+                         {% for error in form.phone_number.errors %}
+                              <div class="invalid-feedback">{{ error }}</div>
+                         {% endfor %}
+                    </div>
+               </div>
+        
+               <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+     </div>
+</div>
+
+{% endblock %}

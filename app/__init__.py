@@ -7,10 +7,6 @@ from .models import User
 from .config import Config 
 
 
-
-
-
-
 def create_app():
     app = Flask(__name__)
 
