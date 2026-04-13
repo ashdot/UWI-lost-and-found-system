@@ -50,6 +50,19 @@ def verify_user(user_id, user_password):
     return None
 
 # ======= Routes =======
+
+#Create a register route for admin ( ASH MONDAY )
+@auth_bp.route("/register", methods=["GET", "POST"])
+def register():
+
+    pass
+
+
+
+
+
+
+
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     form = LoginForm()

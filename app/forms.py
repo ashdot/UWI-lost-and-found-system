@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField,FileField,TextAreaField,SelectField, SubmitField
 from wtforms.validators import InputRequired
 from flask_wtf.file import FileField, FileRequired, FileAllowed
-
+from wtforms.validators import Optional
 
 class LoginForm(FlaskForm):
     userID = StringField('userID', validators=[InputRequired()])
@@ -31,11 +31,14 @@ class LostItemReportForm(FlaskForm):
     ])
 
     phone_number = StringField('Phone', validators=[InputRequired()])
+    
     name = StringField('Name', validators=[InputRequired()])
+
     description = TextAreaField('Description',validators=[InputRequired()] ) 
 
     #This Field should be optional 
-    photo = FileField('File', validators=[FileRequired(),FileAllowed(['jpg', 'png'], 'Images only!')])
+    photo = FileField('Photo', validators=[Optional(), 
+        FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')])
 
 
 class FoundItemReportForm(FlaskForm):
@@ -62,5 +65,5 @@ class FoundItemReportForm(FlaskForm):
     photo = FileField('File', validators=[FileRequired(),FileAllowed(['jpg', 'png'], 'Images only!')])
 
     #This Field should be optional 
-    description = TextAreaField('Description',validators=[InputRequired()] ) 
+    description = TextAreaField('Description', validators=[Optional()])
 

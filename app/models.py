@@ -71,22 +71,23 @@ class LostItemReport(db.Model):
     description = db.relationship('LostItemDescription', backref='report', uselist=False)
 
 
-#Add photo column to this to store photos 
 class LostItemDescription(db.Model):
-
     __tablename__ = 'lost_item_description'
 
     id = db.Column(db.Integer, primary_key=True)
-
     item_type = db.Column(db.String(50))
     brand = db.Column(db.String(50))
     color = db.Column(db.String(30))
-
+    
     text_description = db.Column(db.Text)
     text_embedding = db.Column(db.PickleType)
 
+    # Added this column to store the Cloudinary URL
+    photo_url = db.Column(db.String(255), nullable=True)
+
     report_id = db.Column(db.Integer, db.ForeignKey('lost_item_report.reportID'))
 
+#Picture should be optional here 
 class FoundItemReport(db.Model):
     __tablename__ = 'found_item_report'
 
@@ -104,16 +105,16 @@ class FoundItemReport(db.Model):
     description = db.relationship('FoundItemDescription', backref='report', uselist=False)
 
 class FoundItemDescription(db.Model):
-    
     __tablename__ = 'found_item_description'
 
     id = db.Column(db.Integer, primary_key=True)
-
     item_type = db.Column(db.String(50))
     brand = db.Column(db.String(50))
     color = db.Column(db.String(30))
-
-    text_description = db.Column(db.Text)
+    text_description = db.Column(db.Text, nullable=True)
     text_embedding = db.Column(db.PickleType)
+    
+    # Add this line
+    photo_url = db.Column(db.String(255), nullable=True)
 
     report_id = db.Column(db.Integer, db.ForeignKey('found_item_report.reportID'))
