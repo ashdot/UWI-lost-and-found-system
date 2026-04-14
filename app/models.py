@@ -94,7 +94,12 @@ class FoundItemReport(db.Model):
     #location_found = db.Column(db.String(100))
 
     office_name = db.Column(db.String(100))
-    office_location = db.Column(db.String(100))
+
+    adminID = db.Column(db.Integer, db.ForeignKey('User.userID'))
+
+    #office_location = db.Column(db.String(100)) #Should Probably delete this 
+
+    office_directions = db.Column(db.String(255))
 
     description = db.relationship('FoundItemDescription', backref='report', uselist=False)
 
@@ -123,9 +128,27 @@ class FoundItemDescription(db.Model):
     text_description = db.Column(db.Text, nullable=True)
     
     # Text AI Numbers
-    text_embedding = db.Column(db.PickleType)
+    text_embedding = db.Column(db.PickleType, nullable=True)
     # ADD THIS: Image AI Numbers
     image_embedding = db.Column(db.PickleType, nullable=True) 
     
     photo_url = db.Column(db.String(255), nullable=True)
     report_id = db.Column(db.Integer, db.ForeignKey('found_item_report.reportID'))
+
+
+class Match(db.Model):
+    __tablename__ = 'match'
+
+    matchID = db.Column(db.Integer, primary_key=True)
+    
+    lost_report_id = db.Column(db.Integer, db.ForeignKey('lost_item_report.reportID'), nullable=False)
+    found_report_id = db.Column(db.Integer, db.ForeignKey('found_item_report.reportID'), nullable=False)
+
+    similarity_score = db.Column(db.Float, nullable=False) 
+    
+    status = db.Column(db.String(20), default='pending') 
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+    # Relationships to access data easily
+    lost_report = db.relationship('LostItemReport', backref='matches_as_lost')
+    found_report = db.relationship('FoundItemReport', backref='matches_as_found')

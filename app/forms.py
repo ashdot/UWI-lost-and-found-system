@@ -35,10 +35,13 @@ class LostItemReportForm(FlaskForm):
 class FoundItemReportForm(FlaskForm):
     category = SelectField('Item Category', choices=ITEM_CATEGORIES)
     
-    # ADDED THESE TO MATCH YOUR DATABASE MODEL
+ 
     date_found = DateTimeLocalField('Date and Time Found', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
     phone_number = StringField('Your Phone/Office Phone', validators=[InputRequired()])
     
+    office_name = StringField('Office Name', validators=[Optional()])
+    office_directions = TextAreaField('Office Directions', validators=[Optional()])
+
     # If the admin has a photo, it's better for the AI!
     photo = FileField('Photo', validators=[FileRequired(), FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')])
     description = TextAreaField('Description', validators=[Optional()])

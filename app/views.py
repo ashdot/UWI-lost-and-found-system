@@ -5,10 +5,11 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_user, logout_user, current_user, login_required
 
 from .forms import LostItemReportForm, FoundItemReportForm
-from .models import LostItemReport, FoundItemReport, LostItemDescription, FoundItemDescription
+from .models import LostItemReport, FoundItemReport, LostItemDescription, FoundItemDescription, Match
 from .extensions import db 
 # Import the new unified embedding function
-from .match import generate_embeddings
+from .match import generate_embeddings, match_lost_found
+
 
 views_bp = Blueprint('views_bp', __name__)
 
@@ -19,6 +20,9 @@ def home():
 @views_bp.route("/dashboard")
 @login_required 
 def dashboard():
+
+    #matches = Match.query.filter_by(lost_report_id=user_report_id)
+
     return render_template("dashboard.html")
 
 @views_bp.route("/report-lost", methods=["GET", "POST"])
@@ -74,35 +78,91 @@ def report_lost():
     return render_template("report_lost.html", form=form)
 
 
+# @views_bp.route("/report-found", methods=["GET", "POST"])
+# @login_required
+# def report_found():
+#     if current_user.role != "admin":
+#         flash("Unauthorized: Admins only.", "danger")
+#         return redirect(url_for("views_bp.dashboard"))
+    
+#     form = FoundItemReportForm()
+
+#     if form.validate_on_submit():
+#         try:
+#             image_url = None
+#             if form.photo.data:
+#                 upload_result = cloudinary.uploader.upload(form.photo.data)
+#                 image_url = upload_result.get('secure_url')
+
+#             # Generate AI Embeddings
+#             embeddings = generate_embeddings(
+#                 text=form.description.data, 
+#                 image_url=image_url
+#             )
+
+#             # --- FIX: Ensure office details are included ---
+#             found_item = FoundItemReport(
+#                 phone=form.phone_number.data, 
+#                 date_found=form.date_found.data,
+#                 office_name=form.office_name.data,         # Added this
+#                 office_directions=form.office_directions.data, # Added this
+#                 adminID=current_user.userID
+#             )
+
+#             db.session.add(found_item)
+#             db.session.flush()
+
+#             description = FoundItemDescription(
+#                 item_type=form.category.data,
+#                 text_description=form.description.data or "No description",
+#                 photo_url=image_url,
+#                 text_embedding=embeddings["text_vec"],  
+#                 image_embedding=embeddings["image_vec"], 
+#                 report_id=found_item.reportID
+#             )
+
+#             db.session.add(description)
+#             db.session.commit()
+
+#             flash("Found item registered and indexed for matching!", "success")
+#             return redirect(url_for("views_bp.dashboard"))
+
+#         except Exception as e:
+#             db.session.rollback()
+#             print(f"❌ ERROR: {e}")
+#             flash("Error processing found item.", "danger")
+
+#     return render_template("report_found.html", form=form)
+
 @views_bp.route("/report-found", methods=["GET", "POST"])
 @login_required
 def report_found():
     if current_user.role != "admin":
         flash("Unauthorized: Admins only.", "danger")
         return redirect(url_for("views_bp.dashboard"))
-    
+
     form = FoundItemReportForm()
 
     if form.validate_on_submit():
         try:
+
             image_url = None
             if form.photo.data:
                 upload_result = cloudinary.uploader.upload(form.photo.data)
                 image_url = upload_result.get('secure_url')
 
-            # Generate AI Embeddings
-            embeddings = generate_embeddings(
-                text=form.description.data, 
-                image_url=image_url
-            )
+            embeddings = generate_embeddings(text=form.description.data, image_url=image_url)
 
+            # 2. Save the Found Report
             found_item = FoundItemReport(
                 phone=form.phone_number.data, 
-                date_found=form.date_found.data
+                date_found=form.date_found.data,
+                office_name=form.office_name.data,
+                office_directions=form.office_directions.data,
+                adminID=current_user.userID 
             )
-
             db.session.add(found_item)
-            db.session.flush()
+            db.session.flush() # This gives us found_item.reportID before committing
 
             description = FoundItemDescription(
                 item_type=form.category.data,
@@ -112,23 +172,34 @@ def report_found():
                 image_embedding=embeddings["image_vec"], 
                 report_id=found_item.reportID
             )
-
             db.session.add(description)
-            db.session.commit()
 
-            flash("Found item registered and indexed for matching!", "success")
+            # --- THE MATCHING LOOP ---
+            all_lost = LostItemReport.query.all()
+            for lost_item in all_lost:
+                match_result = match_lost_found(lost_item, found_item)
+                
+                if match_result["is_high_match"]:
+                    new_match = Match(
+                        lost_report_id=lost_item.reportID,
+                        found_report_id=found_item.reportID,
+                        similarity_score=match_result["final_score"],
+                        status='pending'
+                    )
+                    db.session.add(new_match)
+            # ------------------------------------------
+
+            db.session.commit()
+            flash("Found item registered and AI matching complete!", "success")
             return redirect(url_for("views_bp.dashboard"))
 
         except Exception as e:
             db.session.rollback()
-            print(f"❌ ERROR: {e}")
-            flash("Error processing found item.", "danger")
+            flash(f"Error: {e}", "danger")
 
     return render_template("report_found.html", form=form)
 
-
-
-#Edit Report 
+#Edit/Delete Report 
 
 
 

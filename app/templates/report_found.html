@@ -1,47 +1,78 @@
 {% extends "base.html" %}
 
 {% block main %}
-{% include 'flash_messages.html' %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-success text-white">
+            <h2 class="mb-0">Report Found Item</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
 
-<div class="container py-5 d-flex justify-content-center">
-     <div class="form-card p-4">
-        
-          <h2 class="mb-4">Found Item Report Form</h2>
-
-          <form method="POST" enctype="multipart/form-data">      
-               {{ form.csrf_token }}
-
-               <!--Category field-->
-               <div class="mb-3">
-                    {{ form.category.label(class="form-label") }}
-                    {{ form.category(class="form-select" + (" is-invalid" if form.category.errors else "")) }}
+                <div class="mb-3">
+                    <label class="form-label font-weight-bold">Item Category</label>
+                    {{ form.category(class="form-select") }}
                     {% for error in form.category.errors %}
-                         <div class="invalid-feedback">{{ error }}</div>
+                        <div class="text-danger small">{{ error }}</div>
                     {% endfor %}
-               </div>
+                </div>
 
-               <!--Description field-->
-               <div class="mb-3">
-                    {{ form.description.label(class="form-label") }}
-                    {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows=5) }}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label font-weight-bold">Date and Time Found</label>
+                        {{ form.date_found(class="form-control") }}
+                        {% for error in form.date_found.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label font-weight-bold">Contact Phone Number</label>
+                        {{ form.phone_number(class="form-control", placeholder="e.g. 8761234567") }}
+                        {% for error in form.phone_number.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label font-weight-bold">Description</label>
+                    {{ form.description(class="form-control", rows="3", placeholder="Provide details for the AI matching...") }}
                     {% for error in form.description.errors %}
-                         <div class="invalid-feedback">{{ error }}</div>
+                        <div class="text-danger small">{{ error }}</div>
                     {% endfor %}
-               </div>
-               
-               <!--Photo field-->
-               <div class="mb-3">
-                    {{ form.photo.label(class="form-label") }}
-                    {{ form.photo(class="form-control" + (" is-invalid" if form.photo.errors else "")) }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label font-weight-bold">Upload Photo (Required for AI)</label>
+                    {{ form.photo(class="form-control") }}
+                    <div class="form-text">A clear photo helps our CLIP model match this to lost reports.</div>
                     {% for error in form.photo.errors %}
-                         <div class="invalid-feedback">{{ error }}</div>
+                        <div class="text-danger small">{{ error }}</div>
                     {% endfor %}
-               </div>
+                </div>
 
-        
-               <button type="submit" class="btn btn-primary">Submit</button>
-          </form>
-     </div>
+                <hr>
+                <h5 class="text-muted">Collection Details</h5>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label font-weight-bold">Office Name</label>
+                        <input type="text" name="office_name" class="form-control" placeholder="e.g. Main Security Office">
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label font-weight-bold">Directions to Office</label>
+                        <input type="text" name="office_directions" class="form-control" placeholder="e.g. Behind the Admin building">
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-3">
+                    <button type="submit" class="btn btn-primary btn-lg">Submit Found Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
-
 {% endblock %}

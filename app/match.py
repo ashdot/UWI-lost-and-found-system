@@ -260,12 +260,12 @@ def match_lost_found(lost_report, found_report):
     if lost_report.description.item_type != found_report.description.item_type:
         return {"final_score": 0.0, "is_high_match": False}
 
-    # 1. Keyword Score
+    # Keyword Score
     l_keys = extract_keyword(lost_report.description.text_description)
     f_keys = extract_keyword(found_report.description.text_description)
     kw_score = keyword_similarity(l_keys, f_keys)
 
-    # 2. Text Score
+    # Text Score
     text_score = 0
     if lost_report.description.text_embedding and found_report.description.text_embedding:
         text_score = cosine_similarity(
@@ -273,7 +273,7 @@ def match_lost_found(lost_report, found_report):
             found_report.description.text_embedding
         )
 
-    # 3. Image Score
+    # Image Score
     img_score = 0
     if hasattr(lost_report.description, 'image_embedding') and lost_report.description.image_embedding:
         if hasattr(found_report.description, 'image_embedding') and found_report.description.image_embedding:
@@ -282,7 +282,8 @@ def match_lost_found(lost_report, found_report):
                 found_report.description.image_embedding
             )
 
-    # 4. Final Calculation
+    # Final Calculation
+    # 60% for image 30% for text 10% for keyword 
     if img_score > 0:
         final_score = (0.6 * img_score) + (0.3 * text_score) + (0.1 * kw_score)
     else:
@@ -290,5 +291,6 @@ def match_lost_found(lost_report, found_report):
 
     return {
         "final_score": round(final_score, 4),
-        "is_high_match": final_score > 0.75 # Adjusted threshold slightly
+        "is_high_match": final_score > 0.80 # Made it 80 for testing 
     }
+
