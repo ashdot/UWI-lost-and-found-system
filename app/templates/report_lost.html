@@ -1,70 +1,70 @@
 {% extends "base.html" %}
 
 {% block main %}
-{% include 'flash_messages.html' %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">Report Lost Item (Test Form)</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
 
-<div class="container py-5 d-flex justify-content-center">
-     <div class="form-card p-4">
-        
-          <h2 class="mb-4">Lost Item Report Form</h2>
-
-          <form method="POST" enctype="multipart/form-data">      
-               {{ form.csrf_token }}
-
-               <!--Category field-->
-               <div class="mb-3">
-                    {{ form.category.label(class="form-label") }}
-                    {{ form.category(class="form-select" + (" is-invalid" if form.category.errors else "")) }}
-                    {% for error in form.category.errors %}
-                         <div class="invalid-feedback">{{ error }}</div>
+                <div class="mb-3">
+                    <label class="form-label font-weight-bold">Reporter Name</label>
+                    {{ form.name(class="form-control", placeholder="Enter your full name") }}
+                    {% for error in form.name.errors %}
+                        <div class="text-danger small">{{ error }}</div>
                     {% endfor %}
-               </div>
+                </div>
 
-               <!--Description field-->
-               <div class="mb-3">
-                    {{ form.description.label(class="form-label") }}
-                    {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows=5) }}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label font-weight-bold">Item Category</label>
+                        {{ form.category(class="form-select") }}
+                        {% for error in form.category.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label font-weight-bold">Phone Number</label>
+                        {{ form.phone_number(class="form-control", placeholder="e.g. 8761234567") }}
+                        {% for error in form.phone_number.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label font-weight-bold">Date and Time Lost</label>
+                    {{ form.date_lost(class="form-control", type="datetime-local") }}
+                    {% for error in form.date_lost.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label font-weight-bold">Description</label>
+                    {{ form.description(class="form-control", rows="3", placeholder="Describe the item...") }}
                     {% for error in form.description.errors %}
-                         <div class="invalid-feedback">{{ error }}</div>
+                        <div class="text-danger small">{{ error }}</div>
                     {% endfor %}
-               </div>
-               
-               <!--Photo field-->
-               <div class="mb-3">
-                    {{ form.photo.label(class="form-label") }}
-                    {{ form.photo(class="form-control" + (" is-invalid" if form.photo.errors else "")) }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label font-weight-bold">Upload Photo (Optional)</label>
+                    {{ form.photo(class="form-control") }}
                     {% for error in form.photo.errors %}
-                         <div class="invalid-feedback">{{ error }}</div>
+                        <div class="text-danger small">{{ error }}</div>
                     {% endfor %}
-               </div>
+                </div>
 
-               
-               <h3 class="mb-4">Contact info</h2>
-
-               <div class="row mb-3">
-                
-                    <!--Name field-->
-                    <div class="col-6">
-                         {{ form.name.label(class="form-label") }}
-                         {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
-                         {% for error in form.name.errors %}
-                              <div class="invalid-feedback">{{ error }}</div>
-                         {% endfor %}
-                    </div>
-                    
-                    <!--Phone number field-->
-                     <div class="col-6">
-                         {{ form.phone_number.label(class="form-label") }}
-                         {{ form.phone_number(class="form-select" + (" is-invalid" if form.phone_number.errors else "")) }}
-                         {% for error in form.phone_number.errors %}
-                              <div class="invalid-feedback">{{ error }}</div>
-                         {% endfor %}
-                    </div>
-               </div>
-        
-               <button type="submit" class="btn btn-primary">Submit</button>
-          </form>
-     </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success btn-lg">Submit Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
-
 {% endblock %}

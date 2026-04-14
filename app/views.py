@@ -1,35 +1,25 @@
 import os
 import cloudinary
 import cloudinary.uploader
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, abort, send_from_directory
+from flask import Blueprint, render_template, request, redirect, url_for, flash,jsonify 
 from flask_login import login_user, logout_user, current_user, login_required
+
 from .forms import LostItemReportForm, FoundItemReportForm
-from .models import LostItemReport, FoundItemReport, LostItemDescription , FoundItemDescription
-from .extensions import login_manager, db 
+from .models import LostItemReport, FoundItemReport, LostItemDescription, FoundItemDescription
+from .extensions import db 
+# Import the new unified embedding function
+from .match import generate_embeddings
 
 views_bp = Blueprint('views_bp', __name__)
 
-#User Authentification - 1st Task 
-
 @views_bp .route("/")
 def home():
- return "Hello World"
+    return "Hello World"
 
-@views_bp .route("/dashboard")
-# @login_required #Commented out for testing 
+@views_bp.route("/dashboard")
+@login_required 
 def dashboard():
     return render_template("dashboard.html")
-
-
-@views_bp .route("/admin")
-@login_required #Commented out for testing 
-def admin_dashboard():
-    if current_user.role != "admin":
-        flash("Access denied", "danger")
-        return redirect(url_for("dashboard"))
-
-    return render_template("admin.html")
-
 
 @views_bp.route("/report-lost", methods=["GET", "POST"])
 @login_required 
@@ -37,80 +27,140 @@ def report_lost():
     form = LostItemReportForm()
 
     if form.validate_on_submit():
+        try:
+            # 1. Handle Image Upload
+            image_url = None
+            if form.photo.data:
+                upload_result = cloudinary.uploader.upload(form.photo.data)
+                image_url = upload_result.get('secure_url')
 
-        image_url = None
-        if form.photo.data:
-            # Uploading the file object directly to Cloudinary
-            upload_result = cloudinary.uploader.upload(form.photo.data)
-            image_url = upload_result.get('secure_url')
+            # 2. Generate AI Embeddings (The AI wakes up here)
+            embeddings = generate_embeddings(
+                text=form.description.data, 
+                image_url=image_url
+            )
 
-        lost_item = LostItemReport(
-            phone=form.phone_number.data,
-            date_lost=form.date_lost.data,
-            location_lost=form.location_lost.data
-        )
-        
-        #Adds lost item to database 
-        db.session.add(lost_item)
-        db.session.flush() # This populates lost_item.reportID without committing yet
+            # 3. Create the Main Report
+            lost_item = LostItemReport(
+                phone=form.phone_number.data,
+                date_lost=form.date_lost.data,
+                userID=current_user.userID 
+            )
+            
+            db.session.add(lost_item)
+            db.session.flush() 
 
-        description = LostItemDescription(
-            item_type=form.category.data,
-            text_description=form.description.data,
-            photo_url=image_url, # <--- Cloudinary URL goes here
-            report_id=lost_item.reportID
-        )
+            # 4. Create the Description with AI Vectors
+            description = LostItemDescription(
+                item_type=form.category.data,
+                text_description=form.description.data,
+                photo_url=image_url,
+                text_embedding=embeddings["text_vec"],  
+                image_embedding=embeddings["image_vec"], 
+                report_id=lost_item.reportID
+            )
 
-        #Adds lost item description 
-        db.session.add(description)
-        db.session.commit()
+            db.session.add(description)
+            db.session.commit()
 
-        flash("Lost item reported successfully", "success")
-        return redirect(url_for("views_bp.dashboard"))
+            flash("Lost item reported successfully!", "success")
+            return redirect(url_for("views_bp.dashboard"))
+
+        except Exception as e:
+            db.session.rollback()
+            print(f"❌ ERROR: {e}")
+            flash("Could not save report. Please try again.", "danger")
 
     return render_template("report_lost.html", form=form)
 
 
 @views_bp.route("/report-found", methods=["GET", "POST"])
-@login_required #Commented out for testing 
+@login_required
 def report_found():
     if current_user.role != "admin":
-        flash("Admins only", "danger")
+        flash("Unauthorized: Admins only.", "danger")
         return redirect(url_for("views_bp.dashboard"))
-
+    
     form = FoundItemReportForm()
 
     if form.validate_on_submit():
-        # 1. Handle Optional Cloudinary Upload
-        image_url = None
-        if form.photo.data:
-            upload_result = cloudinary.uploader.upload(form.photo.data)
-            image_url = upload_result.get('secure_url')
+        try:
+            image_url = None
+            if form.photo.data:
+                upload_result = cloudinary.uploader.upload(form.photo.data)
+                image_url = upload_result.get('secure_url')
 
-        # 2. Create the FoundItemReport (Main Table)
-        found_item = FoundItemReport(
-            phone=form.phone_number.data, 
-            location_found=form.location_found.data,
-            date_found=form.date_found.data
-        )
+            # Generate AI Embeddings
+            embeddings = generate_embeddings(
+                text=form.description.data, 
+                image_url=image_url
+            )
 
-        db.session.add(found_item)
-        db.session.flush() # Populates found_item.reportID
+            found_item = FoundItemReport(
+                phone=form.phone_number.data, 
+                date_found=form.date_found.data
+            )
 
-        # 3. Create the FoundItemDescription (Detail Table)
-        description = FoundItemDescription(
-            item_type=form.category.data,
-            brand=form.brand.data,
-            color=form.color.data,
-            text_description=form.description.data or "No description",
-            photo_url=image_url, # <--- The Cloudinary URL
-            report_id=found_item.reportID
-        )
+            db.session.add(found_item)
+            db.session.flush()
 
-        db.session.add(description)
-        db.session.commit()
+            description = FoundItemDescription(
+                item_type=form.category.data,
+                text_description=form.description.data or "No description",
+                photo_url=image_url,
+                text_embedding=embeddings["text_vec"],  
+                image_embedding=embeddings["image_vec"], 
+                report_id=found_item.reportID
+            )
 
-        flash("Found item reported successfully", "success")
-        return redirect(url_for("views_bp.dashboard"))
+            db.session.add(description)
+            db.session.commit()
+
+            flash("Found item registered and indexed for matching!", "success")
+            return redirect(url_for("views_bp.dashboard"))
+
+        except Exception as e:
+            db.session.rollback()
+            print(f"❌ ERROR: {e}")
+            flash("Error processing found item.", "danger")
 
     return render_template("report_found.html", form=form)
+
+
+
+#Edit Report 
+
+
+
+
+#Notification Report 
+
+
+
+
+#Data Analytics 
+
+
+
+
+
+#Error handling 
+
+
+@views_bp.after_request
+def add_header(response):
+   """
+   Add headers to both force latest IE rendering engine or Chrome Frame,
+   and also tell the browser not to cache the rendered page. If we wanted
+   to we could change max-age to 600 seconds which would be 10 minutes.
+   """
+   response.headers['X-UA-Compatible'] = 'IE=Edge,chrome=1'
+   response.headers['Cache-Control'] = 'public, max-age=0'
+   return response
+
+@views_bp.errorhandler(404)
+def page_not_found(error):
+   response = {
+     'message': 'Error occurred: Contents Not Found!'
+   }
+   return jsonify(response)

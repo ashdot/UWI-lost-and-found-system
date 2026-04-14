@@ -26,3 +26,9 @@ uploads/
 # OS files
 .DS_Store
 Thumbs.db
+
+# AI Models
+*.pt
+*.pth
+models/
+app\ViT-B-32.pt

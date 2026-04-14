@@ -75,26 +75,12 @@ class LostItemReport(db.Model):
     phone = db.Column(db.String(10))
 
     date_lost = db.Column(db.DateTime)
-    location_lost = db.Column(db.String(100))
+    #location_lost = db.Column(db.String(100))
+
+    userID = db.Column(db.Integer, db.ForeignKey('User.userID'))
 
     description = db.relationship('LostItemDescription', backref='report', uselist=False)
 
-
-class LostItemDescription(db.Model):
-    __tablename__ = 'lost_item_description'
-
-    id = db.Column(db.Integer, primary_key=True)
-    item_type = db.Column(db.String(50))
-    brand = db.Column(db.String(50))
-    color = db.Column(db.String(30))
-    
-    text_description = db.Column(db.Text)
-    text_embedding = db.Column(db.PickleType)
-
-    # Added this column to store the Cloudinary URL
-    photo_url = db.Column(db.String(255), nullable=True)
-
-    report_id = db.Column(db.Integer, db.ForeignKey('lost_item_report.reportID'))
 
 #Picture should be optional here 
 class FoundItemReport(db.Model):
@@ -105,25 +91,41 @@ class FoundItemReport(db.Model):
     phone = db.Column(db.String(10))
 
     date_found = db.Column(db.DateTime)
-    location_found = db.Column(db.String(100))
-
+    #location_found = db.Column(db.String(100))
 
     office_name = db.Column(db.String(100))
     office_location = db.Column(db.String(100))
 
     description = db.relationship('FoundItemDescription', backref='report', uselist=False)
 
+
+class LostItemDescription(db.Model):
+    __tablename__ = 'lost_item_description'
+
+    id = db.Column(db.Integer, primary_key=True)
+    item_type = db.Column(db.String(50))
+    text_description = db.Column(db.Text)
+    
+    # Text AI Numbers
+    text_embedding = db.Column(db.PickleType)
+    # ADD THIS: Image AI Numbers
+    image_embedding = db.Column(db.PickleType, nullable=True) 
+
+    photo_url = db.Column(db.String(255), nullable=True)
+    report_id = db.Column(db.Integer, db.ForeignKey('lost_item_report.reportID'))
+
+
 class FoundItemDescription(db.Model):
     __tablename__ = 'found_item_description'
 
     id = db.Column(db.Integer, primary_key=True)
     item_type = db.Column(db.String(50))
-    brand = db.Column(db.String(50))
-    color = db.Column(db.String(30))
     text_description = db.Column(db.Text, nullable=True)
-    text_embedding = db.Column(db.PickleType)
     
-    # Add this line
+    # Text AI Numbers
+    text_embedding = db.Column(db.PickleType)
+    # ADD THIS: Image AI Numbers
+    image_embedding = db.Column(db.PickleType, nullable=True) 
+    
     photo_url = db.Column(db.String(255), nullable=True)
-
     report_id = db.Column(db.Integer, db.ForeignKey('found_item_report.reportID'))
