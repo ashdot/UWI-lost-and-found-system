@@ -225,7 +225,126 @@ def report_found():
 
 #Edit/Delete Report 
 
+# --- EDIT LOST REPORT ---
+@views_bp.route("/report-lost/<int:report_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_lost_report(report_id):
+    report = LostItemReport.query.get_or_404(report_id)
 
+    # Only allow the owner (or admin) to edit
+    if report.userID != current_user.userID and current_user.role != "admin":
+        flash("Unauthorized: You cannot edit this report.", "danger")
+        return redirect(url_for("views_bp.dashboard"))
+
+    form = LostItemReportForm(obj=report)
+
+    if form.validate_on_submit():
+        try:
+            # Update main report fields
+            report.phone = form.phone_number.data
+            report.date_lost = form.date_lost.data
+
+            # Handle optional photo update
+            if form.photo.data:
+                upload_result = cloudinary.uploader.upload(form.photo.data)
+                report.description.photo_url = upload_result.get("secure_url")
+
+            # Update description fields
+            report.description.item_type = form.category.data
+            report.description.text_description = form.description.data
+
+            db.session.commit()
+            flash("Lost report updated successfully.", "success")
+            return redirect(url_for("views_bp.dashboard"))
+        except Exception as e:
+            db.session.rollback()
+            flash("Error updating report.", "danger")
+            print(f"❌ EDIT ERROR: {e}")
+
+    return render_template("edit_lost.html", form=form, report=report)
+
+
+# --- DELETE LOST REPORT ---
+@views_bp.route("/report-lost/<int:report_id>/delete", methods=["POST"])
+@login_required
+def delete_lost_report(report_id):
+    report = LostItemReport.query.get_or_404(report_id)
+
+    # Only allow the owner (or admin) to edit
+    if report.userID != current_user.userID and current_user.role != "admin":
+        flash("Unauthorized: You cannot delete this report.", "danger")
+        return redirect(url_for("views_bp.dashboard"))
+
+    try:
+        db.session.delete(report)
+        db.session.commit()
+        flash("Lost report deleted successfully.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash("Error deleting report.", "danger")
+        print(f"❌ DELETE ERROR: {e}")
+
+    return redirect(url_for("views_bp.dashboard"))
+
+
+# --- EDIT FOUND REPORT ---
+@views_bp.route("/report-found/<int:report_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_found_report(report_id):
+    report = FoundItemReport.query.get_or_404(report_id)
+
+    # Only admins can edit found reports
+    if current_user.role != "admin":
+        flash("Unauthorized: Admins only.", "danger")
+        return redirect(url_for("views_bp.dashboard"))
+
+    form = FoundItemReportForm(obj=report)
+
+    if form.validate_on_submit():
+        try:
+            report.phone = form.phone_number.data
+            report.date_found = form.date_found.data
+            report.office_name = form.office_name.data
+            report.office_directions = form.office_directions.data
+
+            if form.photo.data:
+                upload_result = cloudinary.uploader.upload(form.photo.data)
+                report.description.photo_url = upload_result.get("secure_url")
+
+            report.description.item_type = form.category.data
+            report.description.text_description = form.description.data
+
+            db.session.commit()
+            flash("Found report updated successfully.", "success")
+            return redirect(url_for("views_bp.dashboard"))
+        except Exception as e:
+            db.session.rollback()
+            flash("Error updating found report.", "danger")
+            print(f"❌ EDIT ERROR: {e}")
+
+    return render_template("edit_found.html", form=form, report=report)
+
+
+# --- DELETE FOUND REPORT ---
+@views_bp.route("/report-found/<int:report_id>/delete", methods=["POST"])
+@login_required
+def delete_found_report(report_id):
+    report = FoundItemReport.query.get_or_404(report_id)
+
+    if current_user.role != "admin":
+        flash("Unauthorized: Admins only.", "danger")
+        return redirect(url_for("views_bp.dashboard"))
+
+    try:
+        db.session.delete(report)
+        db.session.commit()
+        flash("Found report deleted successfully.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash("Error deleting report.", "danger")
+        print(f"❌ DELETE ERROR: {e}")
+
+    return redirect(url_for("views_bp.dashboard"))
 
 
 #Notification Report 
