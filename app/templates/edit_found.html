@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block main %}
+<h2 class="mt-4">Edit Found Item Report</h2>
+<form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+        {{ form.category.label }} 
+        {{ form.category(class="form-select") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.date_found.label }} 
+        {{ form.date_found(class="form-control") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.phone_number.label }} 
+        {{ form.phone_number(class="form-control") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.office_name.label }} 
+        {{ form.office_name(class="form-control") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.office_directions.label }} 
+        {{ form.office_directions(class="form-control") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.description.label }} 
+        {{ form.description(class="form-control") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.photo.label }} 
+        {{ form.photo(class="form-control") }}
+        {% if report.description and report.description.photo_url %}
+            <p class="mt-2">Current Photo:</p>
+            <img src="{{ report.description.photo_url }}" alt="Found Item Photo" class="img-thumbnail" width="200">
+        {% endif %}
+    </div>
+
+    <button type="submit" class="btn btn-success">Update Found Report</button>
+    <a href="{{ url_for('views_bp.dashboard') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}
