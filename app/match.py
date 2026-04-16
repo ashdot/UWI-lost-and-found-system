@@ -175,7 +175,6 @@ def get_resources():
         try:
             nlp = spacy.load("en_core_web_sm")
         except OSError:
-            # We moved the import to the top, so just call it here
             spacy.cli.download("en_core_web_sm")
             nlp = spacy.load("en_core_web_sm")
 
@@ -291,6 +290,6 @@ def match_lost_found(lost_report, found_report):
 
     return {
         "final_score": round(final_score, 4),
-        "is_high_match": final_score > 0.80 # Made it 80 for testing 
+        "is_high_match": final_score > 0.60 # Made it 60 for testing 
     }
 

@@ -135,7 +135,7 @@ class FoundItemDescription(db.Model):
     photo_url = db.Column(db.String(255), nullable=True)
     report_id = db.Column(db.Integer, db.ForeignKey('found_item_report.reportID'))
 
-
+#Are we going to display a picture of the match
 class Match(db.Model):
     __tablename__ = 'match'
 

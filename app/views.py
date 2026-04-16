@@ -145,15 +145,16 @@ def report_found():
 
     if form.validate_on_submit():
         try:
-
+            # 1. Image Upload
             image_url = None
             if form.photo.data:
                 upload_result = cloudinary.uploader.upload(form.photo.data)
                 image_url = upload_result.get('secure_url')
 
+            # 2. AI Embedding Generation
             embeddings = generate_embeddings(text=form.description.data, image_url=image_url)
 
-            # 2. Save the Found Report
+            # 3. Create Main Found Report
             found_item = FoundItemReport(
                 phone=form.phone_number.data, 
                 date_found=form.date_found.data,
@@ -162,9 +163,10 @@ def report_found():
                 adminID=current_user.userID 
             )
             db.session.add(found_item)
-            db.session.flush() # This gives us found_item.reportID before committing
+            db.session.flush() # Secure the reportID
 
-            description = FoundItemDescription(
+            # 4. Create Description Record
+            found_desc = FoundItemDescription(
                 item_type=form.category.data,
                 text_description=form.description.data or "No description",
                 photo_url=image_url,
@@ -172,12 +174,24 @@ def report_found():
                 image_embedding=embeddings["image_vec"], 
                 report_id=found_item.reportID
             )
-            db.session.add(description)
+            db.session.add(found_desc)
+            
+            # CRITICAL FIX: Manually attach description so the Match script can see it immediately
+            found_item.description = found_desc 
 
-            # --- THE MATCHING LOOP ---
+            # 5. THE MATCHING LOOP
             all_lost = LostItemReport.query.all()
+            matches_found_count = 0
+            
             for lost_item in all_lost:
+                # Ensure the lost item also has its description loaded
+                if not lost_item.description:
+                    continue
+
                 match_result = match_lost_found(lost_item, found_item)
+
+                print(f"DEBUG: Comparing Found {found_item.reportID} with Lost {lost_item.reportID}")
+                print(f"DEBUG: Final Score: {match_result['final_score']}") 
                 
                 if match_result["is_high_match"]:
                     new_match = Match(
@@ -187,15 +201,25 @@ def report_found():
                         status='pending'
                     )
                     db.session.add(new_match)
-            # ------------------------------------------
+                    matches_found_count += 1
 
             db.session.commit()
-            flash("Found item registered and AI matching complete!", "success")
+            
+            if matches_found_count > 0:
+                flash(f"Success! Item registered and {matches_found_count} potential matches found!", "success")
+            else:
+                flash("Found item registered. No immediate matches found.", "info")
+                
             return redirect(url_for("views_bp.dashboard"))
 
         except Exception as e:
             db.session.rollback()
-            flash(f"Error: {e}", "danger")
+            print(f"❌ DATABASE ERROR: {e}")
+            flash("An error occurred while saving the report.", "danger")
+
+    # If validation failed, print errors to console for debugging
+    if request.method == 'POST' and not form.validate():
+        print("❌ Validation Errors:", form.errors)
 
     return render_template("report_found.html", form=form)
 
@@ -210,6 +234,8 @@ def report_found():
 
 
 #Data Analytics 
+
+
 
 
 
