@@ -16,7 +16,6 @@ class User(UserMixin,db.Model):
     email = db.Column(db.String(100))
     password = db.Column(db.String(255))
 
-    # Updated Role Column
     role = db.Column(db.String(20), nullable=False)
 
     # This ensures ONLY these three strings can ever be saved in Postgres
@@ -24,10 +23,6 @@ class User(UserMixin,db.Model):
         CheckConstraint(role.in_(['student', 'staff', 'admin']), name='role_types'),
     )
 
-
-    #failed_attempted = db.Column(db.Integer, default=0) #Causing issues so commented out 
-
-    #lock_until = db.Column(db.DateTime(timezone=True), nullable=True) #Causing issues so commented out 
 
     def __init__(self, userID=None, firstName=None, lastName=None, email=None, role=None, password=None):
         if userID:
@@ -64,45 +59,37 @@ class User(UserMixin,db.Model):
             self.lock_until = datetime.now(timezone.utc) + timedelta(minutes=30)
 
 
-# TO BE DONE -> LOST AND FOUND REPORT MODELS 
-
 class LostItemReport(db.Model):
-
+    
     __tablename__ = 'lost_item_report'
 
     reportID = db.Column(db.Integer, primary_key=True)
+    phone = db.Column(db.String(15)) # Increased for flexibility
+    date_lost = db.Column(db.DateTime, default=db.func.current_timestamp())
 
-    phone = db.Column(db.String(10))
+    # Foreign Key
+    # Make sure 'User.userID' matches your User model's table/column exactly
+    userID = db.Column(db.Integer, db.ForeignKey('User.userID'), nullable=False)
 
-    date_lost = db.Column(db.DateTime)
-    #location_lost = db.Column(db.String(100))
+    # Relationships
+    
+    # 1. CRITICAL: This allows the email logic to find the user's email address
+    user = db.relationship('User', backref='lost_reports')
 
-    userID = db.Column(db.Integer, db.ForeignKey('User.userID'))
+    # 2. One-to-One with Description
+    # cascade="all, delete-orphan" deletes description if the report is deleted
+    description = db.relationship(
+        'LostItemDescription', 
+        backref='report', 
+        uselist=False, 
+        cascade="all, delete-orphan"
+    )
 
-    description = db.relationship('LostItemDescription', backref='report', uselist=False)
+    # 3. Matches associated with this lost report
+    matches = db.relationship('Match', backref='lost_report', cascade="all, delete-orphan")
 
-
-#Picture should be optional here 
-class FoundItemReport(db.Model):
-    __tablename__ = 'found_item_report'
-
-    reportID = db.Column(db.Integer, primary_key=True)
-
-    phone = db.Column(db.String(10))
-
-    date_found = db.Column(db.DateTime)
-    #location_found = db.Column(db.String(100))
-
-    office_name = db.Column(db.String(100))
-
-    adminID = db.Column(db.Integer, db.ForeignKey('User.userID'))
-
-    #office_location = db.Column(db.String(100)) #Should Probably delete this 
-
-    office_directions = db.Column(db.String(255))
-
-    description = db.relationship('FoundItemDescription', backref='report', uselist=False)
-
+    def __repr__(self):
+        return f"<LostItemReport {self.reportID} - User {self.userID}>"
 
 class LostItemDescription(db.Model):
     __tablename__ = 'lost_item_description'
@@ -118,6 +105,42 @@ class LostItemDescription(db.Model):
 
     photo_url = db.Column(db.String(255), nullable=True)
     report_id = db.Column(db.Integer, db.ForeignKey('lost_item_report.reportID'))
+
+
+#Picture should be optional here 
+class FoundItemReport(db.Model):
+    __tablename__ = 'found_item_report'
+
+    reportID = db.Column(db.Integer, primary_key=True)
+    phone = db.Column(db.String(15)) # Increased to 15 for international formats/extensions
+    date_found = db.Column(db.DateTime, default=db.func.current_timestamp())
+    
+    # Office Details
+    office_name = db.Column(db.String(100), nullable=False)
+    office_directions = db.Column(db.String(255))
+
+    # Foreign Keys
+    # Note: Ensure 'User' matches your User model's __tablename__
+    adminID = db.Column(db.Integer, db.ForeignKey('User.userID'), nullable=False)
+
+    # Relationships
+    # 1. Links the report to the admin who filed it
+    admin = db.relationship('User', backref='found_reports')
+
+    # 2. One-to-One relationship with the description
+    # cascade="all, delete-orphan" ensures if a report is deleted, the description is too
+    description = db.relationship(
+        'FoundItemDescription', 
+        backref='report', 
+        uselist=False, 
+        cascade="all, delete-orphan"
+    )
+
+    # 3. Links to the Match table (Useful for the Dashboard)
+    matches = db.relationship('Match', backref='found_report', cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"<FoundItemReport {self.reportID} - {self.office_name}>"
 
 
 class FoundItemDescription(db.Model):
@@ -136,6 +159,7 @@ class FoundItemDescription(db.Model):
     report_id = db.Column(db.Integer, db.ForeignKey('found_item_report.reportID'))
 
 #Are we going to display a picture of the match
+#Display the picture but blurred out 
 class Match(db.Model):
     __tablename__ = 'match'
 
@@ -149,6 +173,26 @@ class Match(db.Model):
     status = db.Column(db.String(20), default='pending') 
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
-    # Relationships to access data easily
-    lost_report = db.relationship('LostItemReport', backref='matches_as_lost')
-    found_report = db.relationship('FoundItemReport', backref='matches_as_found')
+
+
+class Notification(db.Model):
+    __tablename__ = 'notification'
+
+    #Uniquely Identifies Notification 
+    notification_id = db.Column(db.Integer, primary_key=True)
+    
+    #Message attached to Notification 
+    message = db.Column(db.String(255))
+
+    #is_read = db.Column(db.Boolean, default=False) We don't have this 
+
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+    #Links to User 
+    userID = db.Column(db.Integer, db.ForeignKey('User.userID'))
+    
+    #Links to Match 
+    match_id = db.Column(db.Integer, db.ForeignKey('match.matchID'))
+
+    #Relationship to User 
+    user = db.relationship('User', backref='notifications')

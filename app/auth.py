@@ -67,3 +67,6 @@ def login():
         flash("Invalid ID or Password", "danger")
 
     return render_template("login.html", form=form)
+
+
+#Add logout route !!! 
