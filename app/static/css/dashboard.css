@@ -627,7 +627,7 @@
   margin: 8px 0;
 }
 
-/* ─── Responsive ─────────────────────────────────── */
+/* ─── Responsiveness ─────────────────────────────────── */
 @media (max-width: 768px) {
   .user-sidebar { display: none; }
   .main { 
@@ -946,7 +946,7 @@
 .btn-confirm { background: #0f172a; color: white; }
 .btn-confirm:hover { background: #1e293b; transform: translateY(-2px); }
 
-/* Responsive */
+/* Responsiveness */
 @media (max-width: 768px) {
     .comparison-grid { grid-template-columns: 1fr; }
     .comparison-actions { flex-direction: column; }
