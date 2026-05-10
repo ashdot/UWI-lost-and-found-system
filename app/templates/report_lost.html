@@ -73,10 +73,13 @@
                         <div class="form-field mb-3">
                             <label class="file-label font-weight-bold">Upload Photo (Optional)
                                 <i class="ti ti-photo-up" aria-hidden="true"></i>
-                                <span class="file-cta">Click to upload a photo</span>
-                                <span class="file-hint">JPG, PNG or WEBP — max 10 MB</span>
-                                {{ form.photo(class="", accept="image/*") }}
+                                <span class="file-cta">Click to upload or take a photo</span>
+                                <span class="file-hint">JPG, PNG or WEBP — max 15 MB</span>
+                                
+                                 {# Allows user to take photos directly from phone #}
+                                {{ form.photo(class="", accept="image/*", capture="environment") }}
                             </label>
+                            
                             {% for error in form.photo.errors %}
                                 <div class="text-danger small">{{ error }}</div>
                             {% endfor %}

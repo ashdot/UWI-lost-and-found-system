@@ -154,9 +154,11 @@
 
                 {% for report in reports %}
                 <div class="report-card"
-                     data-category="{{ report.description.item_type if report.description else '' }}"
-                     data-date="{{ report.date_lost }}"
-                     data-name="{{ report.description.item_type if report.description else '' }}">
+                    data-category="{{ report.description.item_type if report.description else '' }}"
+                    data-date="{{ report.date_lost }}"
+                    data-name="{{ report.description.item_type if report.description else '' }}"
+                    data-description="{{ report.description.text_description if report.description else '' }}"> 
+                    <!-- ^ Added this line ^ -->
 
                     <div class="report-image-wrap">
                         {% if report.description and report.description.photo_url %}
@@ -227,7 +229,7 @@
                         {% endif %}
 
                         <h4>
-                            {{ report.description.item_type if report.description else 'Unknown Item' }}
+                            {{ report.description.text_description if report.description else 'Unknown Item' }}
                         </h4>
 
                         <p class="report-date">
@@ -275,10 +277,6 @@
             <div class="empty-state">
                 <i class="bi bi-inbox"></i>
                 <p>You haven't filed any lost item reports yet.</p>
-                <!-- <a href="{{ url_for('views_bp.report_lost') }}" class="btn-file-report">
-                    <i class="bi bi-plus-lg"></i>
-                    Report a Lost Item
-                </a> -->
             </div>
             {% endif %}
 
@@ -378,8 +376,11 @@
                                 <i class="bi bi-check-circle-fill"></i> Confirmed
                             {% elif match.status == 'claimed' %}
                                 <i class="bi bi-hourglass-split"></i> Claimed
+                            {% elif match.status == 'pending' %}
+                              <i class="bi bi-hourglass-split"></i> Pending
                             {% else %}
-                                ≈ {{ (match.similarity_score * 100) | round(0) | int }}%
+                                Match {{ (match.similarity_score * 100) | round(0) | int }}%
+                            
                             {% endif %}
                         </span>
                     </div>
@@ -392,7 +393,7 @@
                         <div class="item-type-tag">{{ found_desc.item_type }}</div>
                         {% endif %}
 
-                        <!-- Item name -->
+                        <!-- Item name
                         <h4>
                             {% if found_desc and found_desc.color %}
                                 {{ found_desc.color }} {{ found_desc.item_type }}
@@ -401,19 +402,43 @@
                             {% else %}
                                 Found Item
                             {% endif %}
-                        </h4>
+                        </h4> -->
 
                         <!-- Match relationship banner -->
                         <div class="match-for-banner">
                             <i class="bi bi-arrow-return-right"></i>
-                            Matched to: {{ lost_label }}
+                            <!-- Matched to: {{ lost_label }} -->
+                            Matched to: Found Report #{{ found.reportID }}
                         </div>
 
-                        <!-- Location -->
-                        <p class="match-location">
-                            <i class="bi bi-geo-alt"></i>
-                            {{ found.office_name if found and found.office_name else 'Location TBA' }}
-                        </p>
+                        <!-- Location & Directions Header -->
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            
+                            <!-- Location -->
+                            <p class="match-location mb-0">
+                                <i class="bi bi-geo-alt"></i>
+                                {{ found.office_name if found and found.office_name else 'Location TBA' }}
+                            </p>
+
+                            <!-- Toggle Link (Beside the location) -->
+                            {% if found and found.office_directions %}
+                            <a href="javascript:void(0);" 
+                            onclick="toggleDirections('dir-{{ match.matchID }}')" 
+                            class="directions-toggle-link"
+                            style="font-size: 0.7rem; color: var(--teal); text-decoration: none; white-space: nowrap;">
+                                <i class="bi bi-info-circle"></i> Directions
+                            </a>
+                            {% endif %}
+                        </div>
+
+                        <!-- The Hidden Content (Always below) -->
+                        {% if found and found.office_directions %}
+                        <div id="dir-{{ match.matchID }}" 
+                            class="directions-content"
+                            style="display: none; font-size: 0.75rem; color: var(--muted); margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-radius: 4px;">
+                            {{ found.office_directions }}
+                        </div>
+                        {% endif %}
 
                         <!-- Similarity score -->
                         {% if match.status not in ['confirmed'] and match.similarity_score %}
@@ -523,20 +548,33 @@
   function applyFilters() {
     const cat  = document.getElementById('filterCategory').value.toLowerCase();
     const date = document.getElementById('filterDate').value;
-    const name = document.getElementById('filterName').value.toLowerCase();
+    const searchTerms = document.getElementById('filterName').value.toLowerCase();
 
     document.querySelectorAll('#reportsGrid .report-card').forEach(card => {
-      const cardCat  = card.dataset.category.toLowerCase();
-      const cardDate = card.dataset.date;
-      const cardName = card.dataset.name.toLowerCase();
+        const cardCat  = card.dataset.category.toLowerCase();
+        const cardDate = card.dataset.date;
+        const cardName = card.dataset.name.toLowerCase();
+        const cardDesc = card.dataset.description.toLowerCase(); 
 
-      const matchCat  = !cat  || cardCat.includes(cat);
-      const matchDate = !date || cardDate === date;
-      const matchName = !name || cardName.includes(name);
+        const matchCat  = !cat  || cardCat.includes(cat);
+        const matchDate = !date || cardDate === date;
+        
+        const matchSearch = !searchTerms || 
+                            cardName.includes(searchTerms) || 
+                            cardDesc.includes(searchTerms);
 
-      card.style.display = (matchCat && matchDate && matchName) ? '' : 'none';
+        card.style.display = (matchCat && matchDate && matchSearch) ? '' : 'none';
     });
-  }
+}
+
+function toggleDirections(id) {
+    const el = document.getElementById(id);
+    if (el.style.display === "none") {
+        el.style.display = "block";
+    } else {
+        el.style.display = "none";
+    }
+}
 </script>
 
 {% endblock %}

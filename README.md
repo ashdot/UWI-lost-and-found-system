@@ -7,3 +7,6 @@ Ashani Mae
 Jada-Marie Dotting
 Ashle Johnson 
 Gabriel Smith 
+
+Setup Instructions 
+

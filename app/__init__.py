@@ -13,6 +13,8 @@ def create_app():
     app = Flask(__name__) #intializes the flask app
 
     app.config.from_object(Config) #gets configuration of app 
+    
+    app.config['MAX_CONTENT_LENGTH'] = int(max_size)
 
     db.init_app(app) #initalizes the postgres database
 

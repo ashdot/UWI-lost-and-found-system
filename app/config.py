@@ -12,6 +12,8 @@ load_dotenv()
 #     api_secret=os.getenv("CLOUDINARY_API_SECRET")
 # )
 
+
+
 class Config(object):
     """Base Config Object"""
     DEBUG = False
@@ -34,5 +36,8 @@ class Config(object):
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
 
     BREVO_API_KEY = os.environ.get('BREVO_API_KEY')
+
+    max_size = os.environ.get('MAX_CONTENT_LENGTH', 10 * 1024 * 1024) # Default to 10MB if missing
+    
 
 
