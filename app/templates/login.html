@@ -1,27 +1,42 @@
 {% extends 'base.html' %}
 
-{% block main %}
-<form class="form-login m-auto" method="post">
-    {{ form.csrf_token }}
-    <div class="header">
-        <img src="{{ url_for('static', filename='images/uwi-logo.png')}}" class="uwi-logo" alt="uwi logo">
-        <div class="headings">
-            <br>
-            <h2 class="school">THE UNIVERSITY OF THE WEST INDIES</h2>
-            <p class="campus">MONA CAMPUS, JAMAICA. WEST INDIES</p>
-            <p class="system-name">LOST AND FOUND SYSTEM</p>
-        </div>
-    </div>
-    {% include 'flash_messages.html' %}
-    <div class="form-floating mb-2">
-        {{ form.userID(class='form-control', placeholder="Username") }}
-        {{ form.userID.label() }}
-    </div>
-    <div class="form-floating mb-2">
-        {{ form.password(class='form-control', placeholder="Password") }}
-        {{ form.password.label() }}
-    </div>
-    <!--add forgot password option-->
-    <button class="btn btn-lg btn-primary w-100 mt-2" type="submit">Log in</button>
-</form>
+{% block css %} 
+<link rel="stylesheet" href="{{ url_for('static', filename='css/forms.css') }}">
 {% endblock %}
+{% block main %}
+
+<div class="login-page d-flex align-items-center justify-content-center min-vh-100">
+  <div class="login-card border shadow-sm p-4" style="width: 100%; max-width: 400px;">
+
+    <div class="text-center mb-4">
+      <img src="{{ url_for('static', filename='images/uwi-logo.png') }}" alt="UWI logo" width="56" class="mb-3">
+      <h4 class="fw-bold mb-1">UWI Lost &amp; Found</h4>
+      <p class="text-muted small mb-0">Mona Campus &middot; Sign in to continue</p>
+    </div>
+
+    {% include 'flash_messages.html' %}
+
+    <form method="post" novalidate>
+      {{ form.csrf_token }}
+
+      <div class="mb-3">
+        {{ form.userID.label(text="Student / Staff ID", class="form-label fw-medium") }}
+        {{ form.userID(class="form-control", placeholder="e.g. 620123456", style="color: #212529") }}
+        </div>
+
+        <div class="mb-1">
+        {{ form.password.label(text="Password", class="form-label fw-medium") }}
+        {{ form.password(class="form-control", placeholder="Enter your password", style="color: #212529") }}
+        </div>
+
+      <div class="text-end mb-3">
+        <a href="#" class="small text-decoration-none">Forgot password?</a>
+      </div>
+
+      <button class="btn btn-lg btn-primary w-100 mt-2" type="submit" class="btn btn-dark w-100">Sign In</button>
+    </form>
+
+  </div>
+</div>
+
+{% endblock %} 

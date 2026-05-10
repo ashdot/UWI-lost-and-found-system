@@ -1,21 +1,29 @@
 import os
-import spacy
-import spacy.cli
+
 import requests
 import numpy as np
-from io import BytesIO
+from gradio_client import Client
 
+import spacy
 
-# THIS IS INCASE WE WANT TO RUN CLIP OVER CLOUD 
+# Replace 'your-username' with your actual HF username
+HF_SPACE_ID = "ashdots/my-clip-engine"
 HF_TOKEN = os.getenv("HF_TOKEN")
-HF_API_URL = "https://api-inference.huggingface.co/pipeline/feature-extraction/openai/clip-vit-base-patch32"
 
-# Global spaCy only — no more CLIP/torch model loading
+# Connect to your Space
+try:
+    client = Client(HF_SPACE_ID, token=HF_TOKEN)
+except Exception as e:
+    print(f"⚠️ Warning: Could not connect to HF Space. API calls will fail. Error: {e}")
+    client = None
+
 nlp = None
 
-
-def get_nlp():
+def get_resources():
+    """Lazy loader for SPacy. Only runs when a match is needed."""
     global nlp
+    
+    # 1. Load spaCy
     if nlp is None:
         print("🔍 Loading spaCy...")
         try:
@@ -23,75 +31,81 @@ def get_nlp():
         except OSError:
             spacy.cli.download("en_core_web_sm")
             nlp = spacy.load("en_core_web_sm")
-    return nlp
-
-
-# --- ENCODING FUNCTIONS ---
-
-def _hf_text_embedding(text):
-    response = requests.post(
-        HF_API_URL,
-        headers={"Authorization": f"Bearer {HF_TOKEN}"},
-        json={"inputs": text}
-    )
-    response.raise_for_status()
-    return response.json()
-
-
-def _hf_image_embedding(image_url):
-    img_bytes = requests.get(image_url).content
-    response = requests.post(
-        HF_API_URL,
-        headers={
-            "Authorization": f"Bearer {HF_TOKEN}",
-            "Content-Type": "image/jpeg"
-        },
-        data=img_bytes
-    )
-    response.raise_for_status()
-    return response.json()
-
-
-def generate_embeddings(text=None, image_url=None):
-    """
-    Called in views.py when a user SUBMITS a report.
-    Now fetches embeddings from Hugging Face instead of local CLIP.
-    """
-    results = {"text_vec": None, "image_vec": None}
-
-    if text:
-        results["text_vec"] = _hf_text_embedding(text)
-
-    if image_url:
-        results["image_vec"] = _hf_image_embedding(image_url)
-
-    return results
-
+    
+    return nlp  # ✅ FIX: Return the nlp object
 
 def extract_keyword(text):
-    doc = get_nlp()(text)
+    """Uses spacy to extract keywords from description to better pre-process the data"""
+    nlp = get_resources()  # ✅ FIX: Now correctly receives the nlp object
+    doc = nlp(text)
     return [t.lemma_.lower() for t in doc if t.pos_ in ["NOUN", "ADJ"] and not t.is_stop]
 
+# --- UPDATED CLOUD ENCODERS ---
 
-# --- MATH FUNCTIONS (numpy instead of torch — no GPU needed) ---
+def _hf_text_embedding(text):
+    if not client: return None
+    try:
+        result = client.predict(
+            text=text, 
+            image=None, 
+            api_name="/predict"
+        )
+        return np.array(result).flatten().tolist()
+    except Exception as e:
+        print(f"❌ Space Text Error: {e}")
+        return None
+
+from gradio_client import Client, handle_file  # Add handle_file to your imports
+
+def _hf_image_embedding(image_url):
+    """Hits your PRIVATE Hugging Face Space for image vectors"""
+    if not client: return None
+    try:
+        # handle_file tells Gradio to download the URL first
+        image_input = handle_file(image_url)
+        
+        result = client.predict(
+            text=None, 
+            image=image_input, 
+            api_name="/predict"
+        )
+        return np.array(result).flatten().tolist()
+    except Exception as e:
+        print(f"❌ Space Image Error: {e}")
+        return None
+    
+# --- MATCHING LOGIC ---
+
+def generate_embeddings(text=None, image_url=None):
+    results = {"text_vec": None, "image_vec": None}
+    if text:
+        results["text_vec"] = _hf_text_embedding(text)
+    if image_url:
+        results["image_vec"] = _hf_image_embedding(image_url)
+    return results
+
+# --- MATH FUNCTIONS (Pure NumPy) ---
 
 def cosine_similarity(feat1, feat2):
-    v1 = np.array(feat1, dtype=np.float32)
-    v2 = np.array(feat2, dtype=np.float32)
-    return float(np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
-
+    if feat1 is None or feat2 is None:
+        return 0.0
+    v1 = np.array(feat1, dtype=np.float32).flatten()
+    v2 = np.array(feat2, dtype=np.float32).flatten()
+    
+    norm = (np.linalg.norm(v1) * np.linalg.norm(v2))
+    if norm == 0: return 0.0
+    return float(np.dot(v1, v2) / norm)
 
 def keyword_similarity(lost_keywords, found_keywords):
     if not lost_keywords or not found_keywords:
         return 0.0
-    ls, fs = set(lost_keywords), set(found_keywords)
+    ls, fs = set(lost_keywords), set(found_keywords)  # ✅ FIX: Removed extra brackets
     return len(ls.intersection(fs)) / len(ls.union(fs))
 
 
 def match_lost_found(lost_report, found_report):
     """
-    Unchanged — still works off stored DB embeddings.
-    No CLIP or HF calls happen here.
+    Calculates match scores based on stored DB embeddings.
     """
     lost_cat  = lost_report.description.item_type
     found_cat = found_report.description.item_type
@@ -135,6 +149,7 @@ def match_lost_found(lost_report, found_report):
     elif l_text_vec and f_img_vec:
         img_score = cosine_similarity(l_text_vec, f_img_vec)
 
+    # Scoring Logic
     if not f_text:
         final_score = img_score
         high_threshold      = 0.65 if (l_img_vec and f_img_vec) else 0.35

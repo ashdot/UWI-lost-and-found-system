@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+<section class="view-report-section">
+
+  <!-- Header -->
+  <div class="section-header mb-4 d-flex justify-content-between align-items-center">
+    <h3>
+      <i class="bi bi-eye me-2" style="color:var(--teal)"></i>
+      Lost Report Details
+    </h3>
+    <a href="{{ url_for('views_bp.dashboard') }}" class="btn-back">
+      <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+  </div>
+
+  <!-- Report Card -->
+  <div class="report-detail-card">
+
+    <!-- Image -->
+    <div class="report-image-wrap mb-3">
+      {% if report.description and report.description.photo_url %}
+        <img src="{{ report.description.photo_url }}" alt="Item photo" class="img-fluid rounded">
+      {% else %}
+        <div class="report-image-placeholder category-placeholder misc">
+          <i class="bi bi-box-seam"></i>
+          <span>No Image</span>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Content -->
+    <div class="report-content">
+      <h4>{{ report.description.item_type if report.description else 'Unknown Item' }}</h4>
+      <p><strong>Date Lost:</strong> {{ report.date_lost.strftime('%b %d, %Y') if report.date_lost else 'Unknown' }}</p>
+      <p><strong>Description:</strong> {{ report.description.text_description if report.description and report.description.text_description else 'No description provided.' }}</p>
+    </div>
+
+    <!-- Matches -->
+    {% if matches %}
+    <div class="matches-section mt-4">
+      <h5><i class="bi bi-link-45deg"></i> Potential Matches</h5>
+      <ul class="list-group">
+        {% for match in matches %}
+        <li class="list-group-item d-flex align-items-center justify-content-between">
+          <div>
+            <strong>{{ match.found_report.description.item_type if match.found_report.description else 'Unknown' }}</strong>
+            <br><small>Status: {{ match.status | capitalize }}</small>
+            {% if match.found_report.description and match.found_report.description.text_description %}
+              <br><small>{{ match.found_report.description.text_description }}</small>
+            {% endif %}
+          </div>
+          {% if match.found_report.description and match.found_report.description.photo_url %}
+            <img src="{{ match.found_report.description.photo_url }}" alt="Match photo" class="img-thumbnail" style="height:60px;width:auto;">
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div class="d-flex gap-2 mt-4">
+      <a href="{{ url_for('views_bp.edit_lost_report', report_id=report.reportID) }}"
+         class="btn-claim"
+         style="background:#f4f6f9;color:var(--navy);flex:1;font-size:.85rem;">
+        <i class="bi bi-pencil"></i> Edit
+      </a>
+      <form method="POST"
+            action="{{ url_for('views_bp.delete_lost_report', report_id=report.reportID) }}"
+            onsubmit="return confirm('Delete this report?');"
+            style="flex:1;">
+        <button type="submit" class="btn-claim"
+                style="background:#fff1f2;color:#e11d48;width:100%;font-size:.85rem;">
+          <i class="bi bi-trash3"></i> Delete
+        </button>
+      </form>
+    </div>
+
+  </div><!-- /.report-detail-card -->
+
+</section>
+
+{% endblock %}

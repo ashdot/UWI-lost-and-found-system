@@ -7,17 +7,17 @@ from wtforms.fields import DateTimeLocalField
 # Reusable choices 
 ITEM_CATEGORIES = [
     ('bags_backpacks', 'Bags & Backpacks'),
+    ('bottles_flasks', 'Bottles & Flasks'),
     ('clothing', 'Clothing'),
     ('computers_electronics', 'Computers & Electronics'),
     ('eyewear', 'Eyewear'),
     ('footwear', 'Footwear'),
     ('ids_cards', 'IDs & Cards'),
     ('keys', 'Keys'),
-    ('misc', 'Miscellaneous'),
     ('mobile_devices', 'Mobile Devices'),
-    ('transport_devices', 'Transportation Devices'),
     ('wallets_purses', 'Wallets & Purses'),
-    ('watches_jewelry', 'Watches & Jewelry')
+    ('watches_jewelry', 'Watches & Jewelry'),
+    ('misc', 'Miscellaneous')
 ]
 
 class LoginForm(FlaskForm):

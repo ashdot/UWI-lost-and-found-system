@@ -1,0 +1,269 @@
+html, 
+body,
+main {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f5f7fb;
+}
+
+/*LOGIN FORM*/
+.login-page {
+    width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: url("../images/login-background.png") no-repeat center center;
+    background-size: cover;
+    /*position: relative;
+    overflow: hidden;*/
+}
+
+.login-card {
+    /*width: 50vw;
+    padding: 30px; 
+    border-radius: 20px;*/
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid white;
+    color: #212529;
+}
+
+/*
+.form-login {
+    width: 50vw;
+    padding: 30px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid white;
+    /*color: #212529;
+    color: white;
+}*/
+
+.form-control:-webkit-autofill,
+.form-control:-webkit-autofill:focus {
+    -webkit-text-fill-color: #212529 !important;
+    box-shadow: 0 0 0px 1000px white inset !important;
+}
+
+.header{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+  
+.uwi-logo {
+    width: auto;
+    height: 100px;
+}
+
+/*
+.headings h2,
+.headings p {
+    margin: 0;
+    line-height: 1.1;
+}
+
+.school {
+    padding-top: 10px;
+    font-size: 21px;
+    font-weight: 600;
+    color: black;
+}
+
+.campus {
+    font-size: 18px;
+    color: black;
+    font-weight: 300;
+}
+
+.system-name{
+    font-size: 18px;
+    color: black;
+    font-weight:bold;
+}*/
+
+.form-control {
+    border-radius: 12px;
+    border: 1px solid darkgrey;
+    color: white;
+}
+  
+.btn-primary {
+    background: linear-gradient(to bottom right, #79fcfc, #0003c8);
+    opacity: 0.8;
+    border: none;
+    border-radius: 12px;
+    font-weight: bold;
+    color: white;
+}
+  
+.btn-primary:hover {
+    opacity: 1;
+}
+
+/*work on making it more responsive next*/
+
+/*REPORT LOST ITEM FORM*/
+.lost-item-report {
+    display: flex;
+    min-height: 100vh;
+}
+
+.lost-item-report > aside,
+.lost-item-report .sidebar {
+    flex: 0 0 260px; /* adjust to your sidebar width */
+}
+
+/* Main takes remaining space and centers content */
+.lost-item-report .main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* keeps it from vertically centering unless you want that */
+    padding: 2rem;
+}
+
+.card-container {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    padding: 3rem 1rem 4rem;
+}
+
+.card {
+    width: 100%;
+    max-width: 600px;
+    background: #0e1f3d;
+    border-radius: 24px;
+    border: 1px solid rgba(32, 178, 170, 0.15);
+    overflow: hidden;
+    box-shadow:
+        0 32px 80px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(32, 178, 170, 0.05);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #0a6e68 0%, #093458 60%, #072040 100%);
+    padding: 2.25rem 2.25rem 2rem;
+    border-bottom: 1px solid rgba(32, 178, 170, 0.12);
+    position: relative;
+    overflow: hidden;
+}
+
+.card-header h2 {
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 8px;
+    line-height: 1.15;
+}
+
+.card-body {
+    padding: 2rem 2.25rem 2.25rem;
+}
+
+.form-field {
+    margin-bottom: 14px;
+}
+
+.form-field label {
+    /*display: block;*/
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(180, 210, 240, 0.78);
+    margin-bottom: 7px;
+    letter-spacing: 0.01em;
+}
+
+.form-field .form-control,
+.form-field .form-select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(32, 178, 170, 0.2);
+    border-radius: 10px;
+    color: #e8f4f8;
+    /*font-family: 'DM Sans', sans-serif;*/
+    font-size: 13.5px;
+    padding: 10px 13px;
+    outline: none;
+    box-shadow: none;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+}
+ 
+.form-field .form-control::placeholder {
+    color: rgba(180, 210, 240, 0.3);
+}
+ 
+.form-field .form-control:hover,
+.form-field .form-select:hover {
+    border-color: rgba(32, 178, 170, 0.38);
+}
+ 
+.form-field .form-control:focus,
+.form-field .form-select:focus {
+    border-color: #20b2aa;
+    background: rgba(32, 178, 170, 0.07);
+    box-shadow: 0 0 0 3px rgba(32, 178, 170, 0.1);
+    color: #e8f4f8;
+}
+
+.file-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1.5px dashed rgba(32, 178, 170, 0.3);
+    border-radius: 12px;
+    padding: 22px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+}
+
+.file-label:hover {
+    border-color: #20b2aa;
+    background: rgba(32, 178, 170, 0.05);
+}
+
+.file-label i {
+    font-size: 26px;
+    color: #20b2aa;
+}
+
+.file-cta {
+  font-size: 13px;
+  font-weight: 500;
+  color: #5dcfc9;
+}
+ 
+.file-hint {
+  font-size: 12px;
+  color: rgba(180, 210, 240, 0.38);
+}
+ 
+.file-label input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+ 

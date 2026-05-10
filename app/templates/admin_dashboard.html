@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+<section class="admin-dashboard">
+
+<!-- Sidebar -->
+{% include "user_sidebar.html" %}
+
+  <!-- Header -->
+  <div class="section-header mb-4 d-flex justify-content-between align-items-center">
+    <h3>
+      <i class="bi bi-speedometer2 me-2" style="color:var(--teal)"></i>
+      Admin Dashboard
+    </h3>
+    <a href="{{ url_for('auth_bp.logout') }}" 
+       class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1">
+      <i class="bi bi-box-arrow-right"></i> Logout
+    </a>
+  </div>
+
+  <!-- Admin Tools -->
+  <div class="admin-tools mb-4">
+    <div class="card bg-light">
+      <div class="card-body d-flex justify-content-between align-items-center">
+        <div>
+          <h5 class="mb-0">Match Synchronization</h5>
+          <small class="text-muted">
+            Run a full system scan to find matches missed during initial reporting.
+          </small>
+        </div>
+        <form action="{{ url_for('views_bp.admin_auto_generate_all') }}" method="POST">
+          <button type="submit" class="btn btn-primary"
+                  onclick="return confirm('This will scan all reports. Continue?')">
+            <i class="bi bi-arrow-repeat me-1"></i> Generate All Matches
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analytics Stats -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="hero-stat text-center">
+        <div class="hero-stat-num">{{ stats.total_lost }}</div>
+        <div class="hero-stat-label">Total Lost</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="hero-stat text-center">
+        <div class="hero-stat-num">{{ stats.total_found }}</div>
+        <div class="hero-stat-label">Total Found</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="hero-stat text-center">
+        <div class="hero-stat-num">{{ stats.pending_claims }}</div>
+        <div class="hero-stat-label">Pending Claims</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="hero-stat text-center">
+        <div class="hero-stat-num">{{ stats.successful_returns }}</div>
+        <div class="hero-stat-label">Successful Returns</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Matches Section -->
+  <div class="matches-section">
+    <h5><i class="bi bi-link-45deg"></i> Matches Overview</h5>
+    {% if matches %}
+      <ul class="list-group">
+        {% for match in matches %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ match.found_report.description.item_type if match.found_report.description else 'Unknown' }}</strong>
+            <br><small>Status: {{ match.status | capitalize }}</small>
+          </div>
+          {% if match.found_report.description and match.found_report.description.photo_url %}
+            <img src="{{ match.found_report.description.photo_url }}"
+                 alt="Match photo"
+                 class="img-thumbnail"
+                 style="height:60px;width:auto;">
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="empty-state">
+        <i class="bi bi-inbox"></i>
+        <p>No matches available yet.</p>
+      </div>
+    {% endif %}
+  </div>
+
+</section>
+
+{% endblock %}

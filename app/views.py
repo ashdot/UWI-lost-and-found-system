@@ -6,34 +6,45 @@ from flask_login import login_user, logout_user, current_user, login_required
 
 from flask_mail import Message
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 
 from .forms import LostItemReportForm, FoundItemReportForm
 from .models import LostItemReport, FoundItemReport, LostItemDescription, FoundItemDescription, Match, Notification
 from .extensions import db, mail
 
-from .match import generate_embeddings, match_lost_found
+from .match import generate_embeddings, match_lost_found # -> LOCAL VERSION OF CLIP
+#from .match2 import generate_embeddings, match_lost_found # -> CLOUD VERSION OF CLIP
+
 
 #Views Blueprint that contains all non-auth views of the Application 
 views_bp = Blueprint('views_bp', __name__)
 
-@views_bp .route("/")
-def home():
-    return "Uwi Lost and Found"
 
+# --- REDIRECT TO LOGIN PAGE ---
+@views_bp.route("/")
+def home():
+    return redirect(url_for('auth_bp.login'))
+
+# --- DASHBOARDS AND CLAIM MANAGEMENT ---
 @views_bp.route("/dashboard")
 @login_required 
 def dashboard():
-
     if current_user.role == "admin":
         return redirect(url_for("views_bp.admin_dashboard"))
 
+    #Identify which lost reports belong to the user
     user_lost_reports = LostItemReport.query.filter_by(userID=current_user.userID).all()
-    
     report_ids = [report.reportID for report in user_lost_reports]
     
-    matches = Match.query.filter(Match.lost_report_id.in_(report_ids)).all()
+    #Grab matches with ALL nested data 
+    matches = Match.query.filter(Match.lost_report_id.in_(report_ids))\
+        .options(
+            joinedload(Match.found_report)      # Go to the Found Report
+            .joinedload(FoundItemReport.description) # Go to the Description (where photo_url is)
+        ).all()
 
-    notifications = Notification.query.filter_by(userID=current_user.userID).order_by(Notification.created_at.desc()).all()
+    notifications = Notification.query.filter_by(userID=current_user.userID)\
+        .order_by(Notification.created_at.desc()).all()
 
     return render_template(
         "dashboard.html", 
@@ -42,13 +53,36 @@ def dashboard():
         notifications=notifications
     )
 
+
+#FIX CLAIM MANAGEMENT IMPLEMENTAION 
+@views_bp.route("/claim-item/<int:match_id>", methods=["POST"])
+@login_required
+def claim_item(match_id):
+    match = Match.query.get_or_404(match_id)
+    
+    print(f"DEBUG: User {current_user.userID} is trying to claim match {match_id}")
+    print(f"DEBUG: Match owner is {match.lost_report.userID}")
+
+    if match.lost_report.userID != current_user.userID:
+        print("DEBUG: Unauthorized access - IDs do not match!")
+        flash("Unauthorized action.", "danger")
+        return redirect(url_for("views_bp.dashboard"))
+
+    match.status = 'claimed'
+    db.session.commit() # MAKE SURE THIS LINE IS HERE
+    print("DEBUG: Status updated to 'claimed' and committed!")
+    
+    flash("Claimed successfully!", "success")
+    return redirect(url_for("views_bp.dashboard"))
+    
+
 @views_bp.route("/admin/dashboard")
 @login_required 
 def admin_dashboard():
 
     #Prevents Non-Admins from Entering Admin Dashboard 
     if current_user.role != "admin":
-        flash("Unauthorized: Admins only.", "danger")
+        #flash("Unauthorized: Admins only.", "danger")
         return redirect(url_for("views_bp.dashboard"))
     
     #Retrieves User Reports 
@@ -79,6 +113,151 @@ def admin_dashboard():
         }
     )
 
+@views_bp.route("/admin/manage-claims")
+@login_required
+def manage_claims():
+    if current_user.role != "admin":
+        return redirect(url_for("views_bp.dashboard"))
+
+    # Fetch all matches that are still pending
+    pending_matches = Match.query.filter_by(status='pending').all()
+
+    return render_template("admin_claims.html", matches=pending_matches)
+
+@views_bp.route("/match/<int:match_id>/action/<string:action>", methods=["POST"])
+@login_required
+def handle_match_action(match_id, action):
+    if current_user.role != "admin":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    match = Match.query.get_or_404(match_id)
+
+    if action == "claimed":
+        match.status = "confirmed"
+        flash("Claim confirmed! The item has been marked as returned.", "success")
+    
+    elif action == "reject":
+        match.status = "rejected"
+        flash("Match rejected. It will no longer appear in active claims.", "info")
+
+    db.session.commit()
+    return redirect(url_for("views_bp.manage_claims"))
+
+
+@views_bp.route("/admin/auto-generate-all-matches", methods=["POST"])
+@login_required
+def admin_auto_generate_all():
+    if current_user.role != "admin":
+        flash("Unauthorized: Admins only.", "danger")
+        return redirect(url_for("views_bp.dashboard"))
+
+    try:
+        all_lost = LostItemReport.query.all()
+        all_found = FoundItemReport.query.all()
+        new_matches_count = 0
+
+        for lost_item in all_lost:
+            # Skip if no description/embeddings yet
+            if not lost_item.description:
+                continue
+
+            for found_item in all_found:
+                if not found_item.description:
+                    continue
+
+                # 1. Check if this match already exists in the DB
+                existing = Match.query.filter_by(
+                    lost_report_id=lost_item.reportID,
+                    found_report_id=found_item.reportID
+                ).first()
+                
+                if existing:
+                    continue
+
+                # 2. Run your existing AI matching logic
+                match_result = match_lost_found(lost_item, found_item)
+                
+                # 3. If it's a hit, save it
+                if match_result["match_status"] in ["high", "potential"]:
+                    new_match = Match(
+                        lost_report_id=lost_item.reportID,
+                        found_report_id=found_item.reportID,
+                        similarity_score=match_result["final_score"],
+                        status='pending'
+                    )
+                    db.session.add(new_match)
+                    db.session.flush() # Get matchID for notification
+
+                    # 4. Notify the user who lost the item
+                    new_notif = Notification(
+                        userID=lost_item.userID,
+                        message=f"New match found for your {lost_item.description.item_type}!",
+                        match_id=new_match.matchID 
+                    )
+                    db.session.add(new_notif)
+                    new_matches_count += 1
+
+        db.session.commit()
+        flash(f"System-wide scan complete! {new_matches_count} new matches were generated.", "success")
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ GLOBAL MATCH ERROR: {e}")
+        flash("An error occurred during the global scan.", "danger")
+
+    return redirect(url_for("views_bp.admin_dashboard"))
+
+
+
+# ---VIEW LOST REPORTS --- 
+
+@views_bp.route("/lost_report/<int:report_id>")
+@login_required
+def view_lost_report(report_id):
+    # Ensure the report belongs to the current user
+    report = LostItemReport.query.filter_by(
+        reportID=report_id,
+        userID=current_user.userID
+    ).first_or_404()
+
+    # Debug: show report and description
+    print("DEBUG: Loaded report:", report)
+    print("DEBUG: Report description:", report.description)
+    if report.description:
+        print("DEBUG: Item type:", report.description.item_type)
+        print("DEBUG: Text description:", report.description.text_description)
+        print("DEBUG: Photo URL:", report.description.photo_url)
+
+    # Grab matches for this report with nested data
+    matches = Match.query.filter_by(lost_report_id=report.reportID)\
+        .options(
+            joinedload(Match.found_report)
+            .joinedload(FoundItemReport.description)
+        ).all()
+
+    # Debug: show matches
+    print("DEBUG: Matches count:", len(matches))
+    for m in matches:
+        print("DEBUG: Match:", m)
+        print("DEBUG: Status:", m.status)
+        print("DEBUG: Found report:", m.found_report)
+        if m.found_report and m.found_report.description:
+            print("DEBUG: Found item type:", m.found_report.description.item_type)
+            print("DEBUG: Found text description:", m.found_report.description.text_description)
+            print("DEBUG: Found photo URL:", m.found_report.description.photo_url)
+
+    return render_template(
+        "view_lost_report.html",
+        report=report,
+        matches=matches
+    )
+
+
+
+
+
+
+# ---REPORT CREATION ---
 @views_bp.route("/report-lost", methods=["GET", "POST"])
 @login_required 
 def report_lost():
@@ -89,7 +268,7 @@ def report_lost():
             # 1. Handle Image Upload
             image_url = None
             if form.photo.data:
-                upload_result = cloudinary.uploader.upload(form.photo.data)
+                upload_result = cloudinary.uploader.upload(form.photo.data,folder="uwi_lost_and_found/lost_items")
                 image_url = upload_result.get('secure_url')
 
             # 2. Generate AI Embeddings (The AI wakes up here)
@@ -132,156 +311,11 @@ def report_lost():
     return render_template("report_lost.html", form=form)
 
 
-# @views_bp.route("/report-found", methods=["GET", "POST"])
-# @login_required
-# def report_found():
-#     if current_user.role != "admin":
-#         flash("Unauthorized: Admins only.", "danger")
-#         return redirect(url_for("views_bp.dashboard"))
-    
-#     form = FoundItemReportForm()
-
-#     if form.validate_on_submit():
-#         try:
-#             image_url = None
-#             if form.photo.data:
-#                 upload_result = cloudinary.uploader.upload(form.photo.data)
-#                 image_url = upload_result.get('secure_url')
-
-#             # Generate AI Embeddings
-#             embeddings = generate_embeddings(
-#                 text=form.description.data, 
-#                 image_url=image_url
-#             )
-
-#             # --- FIX: Ensure office details are included ---
-#             found_item = FoundItemReport(
-#                 phone=form.phone_number.data, 
-#                 date_found=form.date_found.data,
-#                 office_name=form.office_name.data,         # Added this
-#                 office_directions=form.office_directions.data, # Added this
-#                 adminID=current_user.userID
-#             )
-
-#             db.session.add(found_item)
-#             db.session.flush()
-
-#             description = FoundItemDescription(
-#                 item_type=form.category.data,
-#                 text_description=form.description.data or "No description",
-#                 photo_url=image_url,
-#                 text_embedding=embeddings["text_vec"],  
-#                 image_embedding=embeddings["image_vec"], 
-#                 report_id=found_item.reportID
-#             )
-
-#             db.session.add(description)
-#             db.session.commit()
-
-#             flash("Found item registered and indexed for matching!", "success")
-#             return redirect(url_for("views_bp.dashboard"))
-
-#         except Exception as e:
-#             db.session.rollback()
-#             print(f"❌ ERROR: {e}")
-#             flash("Error processing found item.", "danger")
-
-#     return render_template("report_found.html", form=form)
-
-# @views_bp.route("/report-found", methods=["GET", "POST"])
-# @login_required
-# def report_found():
-#     if current_user.role != "admin":
-#         flash("Unauthorized: Admins only.", "danger")
-#         return redirect(url_for("views_bp.dashboard"))
-
-#     form = FoundItemReportForm()
-
-#     if form.validate_on_submit():
-#         try:
-#             # 1. Image Upload
-#             image_url = None
-#             if form.photo.data:
-#                 upload_result = cloudinary.uploader.upload(form.photo.data)
-#                 image_url = upload_result.get('secure_url')
-
-#             # 2. AI Embedding Generation
-#             embeddings = generate_embeddings(text=form.description.data, image_url=image_url)
-
-#             # 3. Create Main Found Report
-#             found_item = FoundItemReport(
-#                 phone=form.phone_number.data, 
-#                 date_found=form.date_found.data,
-#                 office_name=form.office_name.data,
-#                 office_directions=form.office_directions.data,
-#                 adminID=current_user.userID 
-#             )
-#             db.session.add(found_item)
-#             db.session.flush() # Secure the reportID
-
-#             # 4. Create Description Record
-#             found_desc = FoundItemDescription(
-#                 item_type=form.category.data,
-#                 text_description=form.description.data or "No description",
-#                 photo_url=image_url,
-#                 text_embedding=embeddings["text_vec"],  
-#                 image_embedding=embeddings["image_vec"], 
-#                 report_id=found_item.reportID
-#             )
-#             db.session.add(found_desc)
-            
-#             # CRITICAL FIX: Manually attach description so the Match script can see it immediately
-#             found_item.description = found_desc 
-
-#             # 5. THE MATCHING LOOP
-#             all_lost = LostItemReport.query.all()
-#             matches_found_count = 0
-            
-#             for lost_item in all_lost:
-#                 # Ensure the lost item also has its description loaded
-#                 if not lost_item.description:
-#                     continue
-
-#                 match_result = match_lost_found(lost_item, found_item)
-
-#                 print(f"DEBUG: Comparing Found {found_item.reportID} with Lost {lost_item.reportID}")
-#                 print(f"DEBUG: Final Score: {match_result['final_score']}") 
-                
-#                 if match_result["is_high_match"]:
-#                     new_match = Match(
-#                         lost_report_id=lost_item.reportID,
-#                         found_report_id=found_item.reportID,
-#                         similarity_score=match_result["final_score"],
-#                         status='pending'
-#                     )
-#                     db.session.add(new_match)
-#                     matches_found_count += 1
-
-#             db.session.commit()
-            
-#             if matches_found_count > 0:
-#                 flash(f"Success! Item registered and {matches_found_count} potential matches found!", "success")
-#             else:
-#                 flash("Found item registered. No immediate matches found.", "info")
-                
-#             return redirect(url_for("views_bp.dashboard"))
-
-#         except Exception as e:
-#             db.session.rollback()
-#             print(f"❌ DATABASE ERROR: {e}")
-#             flash("An error occurred while saving the report.", "danger")
-
-#     # If validation failed, print errors to console for debugging
-#     if request.method == 'POST' and not form.validate():
-#         print("❌ Validation Errors:", form.errors)
-
-#     return render_template("report_found.html", form=form)
-
 @views_bp.route("/report-found", methods=["GET", "POST"])
 @login_required
 def report_found():
     if current_user.role != "admin":
-        flash("Unauthorized: Admins only.", "danger")
+        #flash("Unauthorized: Admins only.", "danger")
         return redirect(url_for("views_bp.dashboard"))
 
     form = FoundItemReportForm()
@@ -291,7 +325,8 @@ def report_found():
             # 1. Image Upload to Cloudinary
             image_url = None
             if form.photo.data:
-                upload_result = cloudinary.uploader.upload(form.photo.data)
+                upload_result = cloudinary.uploader.upload(form.photo.data, folder="uwi_lost_and_found/found_items")
+
                 image_url = upload_result.get('secure_url')
 
             # 2. AI Embedding Generation
@@ -333,10 +368,11 @@ def report_found():
                 # AI Scoring Logic
                 match_result = match_lost_found(lost_item, found_item)
                 
-                if match_result["is_high_match"]:
+                if match_result["match_status"] in ["high", "potential"]:
                     potential_matches.append({
                         "lost_item": lost_item,
-                        "score": match_result["final_score"]
+                        "score": match_result["final_score"],
+                        "status": match_result["match_status"] # Store status for notification clarity
                     })
 
             # 6. RATE LIMITING & EMAIL NOTIFICATION
@@ -399,11 +435,7 @@ def report_found():
     return render_template("report_found.html", form=form)
 
 
-
-
-
 #Edit/Delete Report 
-
 # --- EDIT LOST REPORT ---
 @views_bp.route("/report-lost/<int:report_id>/edit", methods=["GET", "POST"])
 @login_required
@@ -425,7 +457,7 @@ def edit_lost_report(report_id):
 
             # Handle optional photo update
             if form.photo.data:
-                upload_result = cloudinary.uploader.upload(form.photo.data)
+                upload_result = cloudinary.uploader.upload(form.photo.data, folder="uwi_lost_and_found/lost_items")
                 report.description.photo_url = upload_result.get("secure_url")
 
             # Update description fields
@@ -487,7 +519,7 @@ def edit_found_report(report_id):
             report.office_directions = form.office_directions.data
 
             if form.photo.data:
-                upload_result = cloudinary.uploader.upload(form.photo.data)
+                upload_result = cloudinary.uploader.upload(form.photo.data, folder="uwi_lost_and_found/found_items")
                 report.description.photo_url = upload_result.get("secure_url")
 
             report.description.item_type = form.category.data
@@ -541,6 +573,60 @@ def send_match_notification(user_email, item_name, office_name, directions):
     
     #Sends Message 
     mail.send(msg)
+
+
+#Checks matches in the database 
+@views_bp.cli.command("list-matches")
+def list_matches():
+    """Prints all matches in the database with their categories."""
+    matches = Match.query.all()
+    
+    # Header
+    print(f"{'ID':<4} | {'Category':<15} | {'LostID':<7} | {'FoundID':<8} | {'Score':<8} | {'Status'}")
+    print("-" * 65)
+    
+    for m in matches:
+        # We pull the category from the lost_report's description
+        # Using getattr as a safety net in case a report was deleted
+        category = "Unknown"
+        if m.lost_report and m.lost_report.description:
+            category = m.lost_report.description.item_type
+            
+        print(f"{m.matchID:<4} | {category:<15} | {m.lost_report_id:<7} | {m.found_report_id:<8} | {m.similarity_score:<8.4f} | {m.status}")
+
+@views_bp.cli.command("list-items")
+def list_items():
+    """Prints all Lost and Found items currently in the database."""
+    from .models import LostItemReport, FoundItemReport
+    
+    # --- LOST ITEMS SECTION ---
+    print("\n=== LOST ITEMS REPORTS ===")
+    lost_items = LostItemReport.query.all()
+    if not lost_items:
+        print("No lost items reported.")
+    else:
+        print(f"{'ID':<4} | {'Category':<15} | {'Date Lost':<12} | {'Description'}")
+        print("-" * 70)
+        for item in lost_items:
+            # Accessing the related description object
+            cat = item.description.item_type if item.description else "N/A"
+            desc = (item.description.text_description[:40] + "...") if item.description else "No desc"
+            print(f"{item.reportID:<4} | {cat:<15} | {str(item.date_lost):<12} | {desc}")
+
+    # --- FOUND ITEMS SECTION ---
+    print("\n=== FOUND ITEMS REPORTS ===")
+    found_items = FoundItemReport.query.all()
+    if not found_items:
+        print("No found items reported.")
+    else:
+        print(f"{'ID':<4} | {'Category':<15} | {'Office/Loc':<15} | {'Description'}")
+        print("-" * 70)
+        for item in found_items:
+            cat = item.description.item_type if item.description else "N/A"
+            office = item.office_name if item.office_name else "N/A"
+            desc = (item.description.text_description[:40] + "...") if item.description else "No desc"
+            print(f"{item.reportID:<4} | {cat:<15} | {office:<15} | {desc}")
+    print("\n")
 
 
 #Error handling 

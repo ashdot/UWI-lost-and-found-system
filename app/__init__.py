@@ -1,6 +1,6 @@
 import os
 from flask import Flask
-from flask_mail import Mail
+
 from .extensions import db, login_manager, migrate, mail
 from .views import views_bp
 from .auth import auth_bp 
@@ -11,8 +11,6 @@ from .config import Config
 
 def create_app():
     app = Flask(__name__) #intializes the flask app
-
-    #mail = Mail() #initializes a mail object
 
     app.config.from_object(Config) #gets configuration of app 
 

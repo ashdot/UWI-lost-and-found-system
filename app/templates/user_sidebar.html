@@ -1,0 +1,48 @@
+<div class="user-sidebar">
+
+    <!-- Logo / Branding -->
+    <div class="sidebar-top">
+        <h2 class="logo">
+            UWI <span>Lost</span><br>&amp; Found
+        </h2>
+    </div>
+
+    <!-- Navigation -->
+    <div class="user-menu">
+
+        <p class="menu-label">MENU</p>
+
+        <a 
+            href="{{ url_for('views_bp.dashboard') }}"
+            class="menu-item {% if active_page == 'dashboard' %}active{% endif %}"
+        >
+            <i class="bi bi-grid-fill"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a 
+            href="{{ url_for('views_bp.report_lost') }}"
+            class="menu-item {% if active_page == 'report' %}active{% endif %}"
+        >
+            <i class="bi bi-exclamation-circle-fill"></i>
+            <span>Report Lost Item</span>
+        </a>
+
+       
+
+    </div>
+
+    <!-- Bottom Section -->
+    <div class="sidebar-bottom">
+
+        <a 
+            href="{{ url_for('auth_bp.logout') }}"
+            class="menu-item logout"
+        >
+            <i class="bi bi-box-arrow-right"></i>
+            <span>Sign Out</span>
+        </a>
+
+    </div>
+
+</div>

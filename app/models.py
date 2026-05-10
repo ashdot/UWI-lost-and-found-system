@@ -158,8 +158,7 @@ class FoundItemDescription(db.Model):
     photo_url = db.Column(db.String(255), nullable=True)
     report_id = db.Column(db.Integer, db.ForeignKey('found_item_report.reportID'))
 
-#Are we going to display a picture of the match
-#Display the picture but blurred out 
+
 class Match(db.Model):
     __tablename__ = 'match'
 
@@ -170,7 +169,9 @@ class Match(db.Model):
 
     similarity_score = db.Column(db.Float, nullable=False) 
     
-    status = db.Column(db.String(20), default='pending') 
+    #Made into an index for faster retrival 
+    status = db.Column(db.String(20), default='pending', index=True) 
+
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
 
@@ -183,8 +184,6 @@ class Notification(db.Model):
     
     #Message attached to Notification 
     message = db.Column(db.String(255))
-
-    #is_read = db.Column(db.Boolean, default=False) We don't have this 
 
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
