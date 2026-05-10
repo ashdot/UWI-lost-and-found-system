@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block main %}
+<section class="match-comparison-container">
+    <!-- Top Navigation & Title -->
+    <div class="comparison-header">
+        <div class="header-left">
+            <a href="{{ url_for('views_bp.admin_dashboard') }}" class="back-link">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+            <h2>Match Analysis</h2>
+        </div>
+        <div class="match-score-pill">
+            <span class="score-label">AI Similarity</span>
+            <span class="score-value">{{ "%.0f"|format(match.similarity_score * 100) }}%</span>
+        </div>
+    </div>
+
+    <div class="comparison-grid">
+        <!-- LOST ITEM COLUMN -->
+        <div class="comparison-card lost-side">
+            <div class="side-badge">Lost Item #{{ lost.reportID }}</div>
+            
+            <div class="comparison-image">
+                {% if lost.description and lost.description.photo_url %}
+                    <img src="{{ lost.description.photo_url }}" alt="Lost Item">
+                {% else %}
+                    <div class="no-image-placeholder">
+                        <i class="bi bi-camera-video-off"></i>
+                        <span>No Photo Uploaded</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="comparison-details">
+                <h3 class="item-type">{{ lost.description.item_type or 'Unknown Item' }}</h3>
+                <div class="info-group">
+                    <label>Reported By</label>
+                    <p>User ID: {{ lost.userID }}</p>
+                </div>
+                <div class="info-group">
+                    <label>Date Lost</label>
+                    <p>{{ lost.date_lost.strftime('%B %d, %Y') }}</p>
+                </div>
+                <div class="info-group">
+                    <label>Description</label>
+                    <p class="description-text">{{ lost.description.text_description or 'No details provided.' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOUND ITEM COLUMN -->
+        <div class="comparison-card found-side">
+            <div class="side-badge">Found Item #{{ found.reportID }}</div>
+            
+            <div class="comparison-image">
+                {% if found.description and found.description.photo_url %}
+                    <img src="{{ found.description.photo_url }}" alt="Found Item">
+                {% else %}
+                    <div class="no-image-placeholder">
+                        <i class="bi bi-camera-video-off"></i>
+                        <span>No Photo Uploaded</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="comparison-details">
+                <h3 class="item-type">{{ found.description.item_type or 'Unknown Item' }}</h3>
+                <div class="info-group">
+                    <label>Found At</label>
+                    <p>{{ found.office_name }}</p>
+                </div>
+                <div class="info-group">
+                    <label>Date Found</label>
+                    <p>{{ found.date_found.strftime('%B %d, %Y') }}</p>
+                </div>
+                <div class="info-group">
+                    <label>Description</label>
+                    <p class="description-text">{{ found.description.text_description or 'No details provided.' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="comparison-actions">
+        <form action="{{ url_for('views_bp.handle_match_action', match_id=match.matchID, action='reject') }}" method="POST">
+            <button type="submit" class="action-btn btn-reject">
+                <i class="bi bi-x-lg"></i> Dismiss Match
+            </button>
+        </form>
+        
+        <form action="{{ url_for('views_bp.handle_match_action', match_id=match.matchID, action='claimed') }}" method="POST">
+            <button type="submit" class="action-btn btn-confirm">
+                <i class="bi bi-check-lg"></i> Confirm & Close Claim
+            </button>
+        </form>
+    </div>
+</section>
+{% endblock %}

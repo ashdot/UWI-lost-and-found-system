@@ -13,6 +13,16 @@ VALUES (
     'student'
 );
 
+INSERT INTO "User" ("userID", "firstName", "lastName", "email", "password", "role") 
+VALUES (
+    620164713, 
+    'Ashle', 
+    'Johnson', 
+    'ashlerose101@gmail.com', 
+    'scrypt:32768:8:1$dQVEfNkYrxVLDoRg$e510abc53fd00e284379b6d9d3a68a580d727b0098b0fd353e193a3312c4407cf8b2438c1881d0f1ef86ad983a224eb794ad585d79d45f63ebeaf25830e9ba1a', 
+    'student'
+);
+
 -- Dr. Angela Chin (staff)
 INSERT INTO "User" ("userID", "firstName", "lastName", "email", "password", "role") 
 VALUES (

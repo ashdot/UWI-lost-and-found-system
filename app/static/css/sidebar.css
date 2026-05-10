@@ -7,9 +7,10 @@
       --muted:  #8492a6;
       --border: #e2e8f0;
       --radius: 14px;
-      --font-head: 'Plus Jakarta Sans', sans-serif;
+      --font-head: 'Bricolage Grotesque', sans-serif;
       --font-body: 'Inter', sans-serif;
     }
+
 
 
 /* ─── Sidebar Container ─────────────────────────── */
@@ -46,7 +47,7 @@
   color: var(--teal);
 }
 
-/* ─── Divider (optional if you add later) ───────── */
+/* ─── Divider ───────────────────────────────── */
 .sidebar-divider {
   height: 1px;
   background: rgba(255,255,255,.1);

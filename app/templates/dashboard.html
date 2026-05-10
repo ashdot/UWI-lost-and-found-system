@@ -57,7 +57,7 @@
 
             <div class="hero-content">
 
-                <h2>Hello, {{ current_user.username }} 👋</h2>
+                <h2>Hello, {{ current_user.firstName }} 👋</h2>
 
                 <p>
                     You have 
@@ -71,17 +71,19 @@
             </div>
 
             <div class="hero-badge">
-
+                <!-- Total no. of reports -->
                 <div class="hero-stat">
                     <div class="hero-stat-num">{{ reports|length }}</div>
                     <div class="hero-stat-label">Reports</div>
                 </div>
 
+                <!-- No. of matches found -->
                 <div class="hero-stat">
                     <div class="hero-stat-num">{{ matches|length }}</div>
                     <div class="hero-stat-label">Matches</div>
                 </div>
 
+                <!-- No. of matches confirmed -->
                 <div class="hero-stat">
                     <div class="hero-stat-num">
                         {{ matches | selectattr('status', 'equalto', 'confirmed') | list | length }}
@@ -132,7 +134,7 @@
 
         </div>
 
-        <!-- Reports Section -->
+        <!-- User's Reports Section -->
         <section class="reports-section">
 
             <div class="section-header">
@@ -147,6 +149,7 @@
 
             {% if reports %}
 
+            <!--All reports filed by the user if any-->
             <div class="reports-grid" id="reportsGrid">
 
                 {% for report in reports %}
@@ -234,21 +237,21 @@
 
                         <!-- Action Buttons -->
                         <div class="d-flex gap-2 mt-2">
-                            <!-- View Details -->
+                            <!-- View Report Details -->
                             <a href="{{ url_for('views_bp.view_lost_report', report_id=report.reportID) }}"
                             class="btn-claim"
                             style="background:#e6f7ff;color:#0369a1;flex:1;font-size:.7rem;">
                                 <i class="bi bi-eye"></i> 
                             </a>
 
-                            <!-- Edit -->
+                            <!-- Edit Report-->
                             <a href="{{ url_for('views_bp.edit_lost_report', report_id=report.reportID) }}"
                             class="btn-claim"
                             style="background:#f4f6f9;color:var(--navy);flex:1;font-size:.7rem;">
                                 <i class="bi bi-pencil"></i>
                             </a>
 
-                            <!-- Delete -->
+                            <!-- Delete Report -->
                             <form method="POST"
                                 action="{{ url_for('views_bp.delete_lost_report', report_id=report.reportID) }}"
                                 onsubmit="return confirm('Delete this report?');"
@@ -267,14 +270,15 @@
 
             </div>
 
+            <!--If the user hasn't filed any reports-->
             {% else %}
             <div class="empty-state">
                 <i class="bi bi-inbox"></i>
                 <p>You haven't filed any lost item reports yet.</p>
-                <a href="{{ url_for('views_bp.report_lost') }}" class="btn-file-report">
+                <!-- <a href="{{ url_for('views_bp.report_lost') }}" class="btn-file-report">
                     <i class="bi bi-plus-lg"></i>
                     Report a Lost Item
-                </a>
+                </a> -->
             </div>
             {% endif %}
 

@@ -76,35 +76,63 @@ def claim_item(match_id):
     return redirect(url_for("views_bp.dashboard"))
     
 
+# @views_bp.route("/admin/dashboard")
+# @login_required 
+# def admin_dashboard():
+
+#     #Prevents Non-Admins from Entering Admin Dashboard 
+#     if current_user.role != "admin":
+#         #flash("Unauthorized: Admins only.", "danger")
+#         return redirect(url_for("views_bp.dashboard"))
+    
+#     #Retrieves User Reports 
+#     user_lost_reports = LostItemReport.query.filter_by(userID=current_user.userID).all()
+
+#     report_ids = [r.reportID for r in user_lost_reports]
+    
+#     matches = []
+#     if report_ids:
+#         matches = Match.query.filter(Match.lost_report_id.in_(report_ids)).all()
+
+#     #Analytics Section - Total Lost, Total Found, Pending Claims, Successful Returns 
+#     total_lost = LostItemReport.query.count()
+#     total_found = FoundItemReport.query.count()
+
+#     pending_claims = Match.query.filter_by(status='pending').count()
+#     successful_returns = Match.query.filter_by(status='confirmed').count()
+
+#     return render_template(
+#         "admin_dashboard.html", 
+#         matches=matches,
+#         reports=user_lost_reports,
+#         stats={
+#             "total_lost": total_lost,
+#             "total_found": total_found,
+#             "pending_claims": pending_claims,
+#             "successful_returns": successful_returns
+#         }
+#     )
+
 @views_bp.route("/admin/dashboard")
 @login_required 
 def admin_dashboard():
-
-    #Prevents Non-Admins from Entering Admin Dashboard 
+    # 1. Security Check
     if current_user.role != "admin":
-        #flash("Unauthorized: Admins only.", "danger")
         return redirect(url_for("views_bp.dashboard"))
     
-    #Retrieves User Reports 
-    user_lost_reports = LostItemReport.query.filter_by(userID=current_user.userID).all()
+    # 2. Retrieve GLOBAL Matches (The Fix)
+    # Instead of filtering by the admin's personal ID, get all matches
+    matches = Match.query.all()
 
-    report_ids = [r.reportID for r in user_lost_reports]
-    
-    matches = []
-    if report_ids:
-        matches = Match.query.filter(Match.lost_report_id.in_(report_ids)).all()
-
-    #Analytics Section - Total Lost, Total Found, Pending Claims, Successful Returns 
+    # 3. Analytics Section
     total_lost = LostItemReport.query.count()
     total_found = FoundItemReport.query.count()
-
     pending_claims = Match.query.filter_by(status='pending').count()
     successful_returns = Match.query.filter_by(status='confirmed').count()
 
     return render_template(
         "admin_dashboard.html", 
-        matches=matches,
-        reports=user_lost_reports,
+        matches=matches,  # Now contains all system matches
         stats={
             "total_lost": total_lost,
             "total_found": total_found,
@@ -119,10 +147,26 @@ def manage_claims():
     if current_user.role != "admin":
         return redirect(url_for("views_bp.dashboard"))
 
-    # Fetch all matches that are still pending
-    pending_matches = Match.query.filter_by(status='pending').all()
+    # Fetch all matches that were claimed by users 
+    test = Match.query.all()
 
-    return render_template("admin_claims.html", matches=pending_matches)
+    return render_template("admin_claims.html", matches=test)
+
+@views_bp.route('/match/details/<int:match_id>')
+def view_match_details(match_id):
+    if current_user.role != "admin":
+        return redirect(url_for("views_bp.dashboard"))
+
+    # Fetch the match or return 404 if not found
+    match = Match.query.get_or_404(match_id)
+    
+    lost_report = match.lost_report
+    found_report = match.found_report
+    
+    return render_template('match_details.html', 
+                           match=match, 
+                           lost=lost_report, 
+                           found=found_report)
 
 @views_bp.route("/match/<int:match_id>/action/<string:action>", methods=["POST"])
 @login_required
@@ -141,7 +185,7 @@ def handle_match_action(match_id, action):
         flash("Match rejected. It will no longer appear in active claims.", "info")
 
     db.session.commit()
-    return redirect(url_for("views_bp.manage_claims"))
+    return redirect(url_for("views_bp.admin_dashboard"))
 
 
 @views_bp.route("/admin/auto-generate-all-matches", methods=["POST"])

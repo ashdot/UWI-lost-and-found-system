@@ -1,100 +1,138 @@
 {% extends "base.html" %}
 
 {% block main %}
+<div class="user-dashboard admin-dashboard-wrapper">
+    <!-- Sidebar -->
+    {% include "user_sidebar.html" %}
 
-<section class="admin-dashboard">
-
-<!-- Sidebar -->
-{% include "user_sidebar.html" %}
-
-  <!-- Header -->
-  <div class="section-header mb-4 d-flex justify-content-between align-items-center">
-    <h3>
-      <i class="bi bi-speedometer2 me-2" style="color:var(--teal)"></i>
-      Admin Dashboard
-    </h3>
-    <a href="{{ url_for('auth_bp.logout') }}" 
-       class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1">
-      <i class="bi bi-box-arrow-right"></i> Logout
-    </a>
-  </div>
-
-  <!-- Admin Tools -->
-  <div class="admin-tools mb-4">
-    <div class="card bg-light">
-      <div class="card-body d-flex justify-content-between align-items-center">
-        <div>
-          <h5 class="mb-0">Match Synchronization</h5>
-          <small class="text-muted">
-            Run a full system scan to find matches missed during initial reporting.
-          </small>
+    <!-- Main Content -->
+    <main class="main">
+        
+        <!-- Top Bar -->
+        <div class="topbar">
+            <div class="topbar-greeting">
+                <h1>Admin Dashboard</h1>
+                <p>System Overview & Match Management</p>
+            </div>
+            <div class="topbar-actions">
+                <a href="{{ url_for('auth_bp.logout') }}" class="notif-btn" title="Logout">
+                    <i class="bi bi-box-arrow-right"></i>
+                </a>
+            </div>
         </div>
-        <form action="{{ url_for('views_bp.admin_auto_generate_all') }}" method="POST">
-          <button type="submit" class="btn btn-primary"
-                  onclick="return confirm('This will scan all reports. Continue?')">
-            <i class="bi bi-arrow-repeat me-1"></i> Generate All Matches
-          </button>
-        </form>
-      </div>
-    </div>
-  </div>
 
-  <!-- Analytics Stats -->
-  <div class="row mb-4">
-    <div class="col-md-3">
-      <div class="hero-stat text-center">
-        <div class="hero-stat-num">{{ stats.total_lost }}</div>
-        <div class="hero-stat-label">Total Lost</div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="hero-stat text-center">
-        <div class="hero-stat-num">{{ stats.total_found }}</div>
-        <div class="hero-stat-label">Total Found</div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="hero-stat text-center">
-        <div class="hero-stat-num">{{ stats.pending_claims }}</div>
-        <div class="hero-stat-label">Pending Claims</div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="hero-stat text-center">
-        <div class="hero-stat-num">{{ stats.successful_returns }}</div>
-        <div class="hero-stat-label">Successful Returns</div>
-      </div>
-    </div>
-  </div>
+        <!-- Hero Banner (Analytics Stats) -->
+        <div class="hero-banner">
+            <div class="hero-dots"></div>
+            <div class="hero-content">
+                <h2>Analytics</h2>
+                <p>Tracking activity across the entire platform.</p>
+            </div>
+            <div class="hero-badge">
+                <div class="hero-stat">
+                    <div class="hero-stat-num">{{ stats.total_lost }}</div>
+                    <div class="hero-stat-label">Total Lost</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-num">{{ stats.total_found }}</div>
+                    <div class="hero-stat-label">Total Found</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-num">{{ stats.pending_claims }}</div>
+                    <div class="hero-stat-label">Pending</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-num">{{ stats.successful_returns }}</div>
+                    <div class="hero-stat-label">Returns</div>
+                </div>
+            </div>
+        </div>
 
-  <!-- Matches Section -->
-  <div class="matches-section">
-    <h5><i class="bi bi-link-45deg"></i> Matches Overview</h5>
-    {% if matches %}
-      <ul class="list-group">
-        {% for match in matches %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          <div>
-            <strong>{{ match.found_report.description.item_type if match.found_report.description else 'Unknown' }}</strong>
-            <br><small>Status: {{ match.status | capitalize }}</small>
-          </div>
-          {% if match.found_report.description and match.found_report.description.photo_url %}
-            <img src="{{ match.found_report.description.photo_url }}"
-                 alt="Match photo"
-                 class="img-thumbnail"
-                 style="height:60px;width:auto;">
-          {% endif %}
-        </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <div class="empty-state">
-        <i class="bi bi-inbox"></i>
-        <p>No matches available yet.</p>
-      </div>
-    {% endif %}
-  </div>
+        <!-- Admin Tools -->
+        <div class="admin-tools mb-5">
+            <div class="section-header">
+                <h3><i class="bi bi-gear-fill me-2" style="color:var(--teal)"></i>Management Tools</h3>
+            </div>
+            <div class="card shadow-sm border-0" style="border-radius: var(--radius); overflow: hidden;">
+                <div class="card-body d-flex justify-content-between align-items-center bg-light">
+                    <div>
+                        <h5 class="mb-1" style="font-family: var(--font-head); font-weight: 700;">Match Synchronization</h5>
+                        <p class="text-muted small mb-0">
+                            Run a CLIP-powered system scan to find matches missed during initial reporting.
+                        </p>
+                    </div>
+                    <form action="{{ url_for('views_bp.admin_auto_generate_all') }}" method="POST">
+                        <button type="submit" class="btn-file-report" style="border:none;"
+                                onclick="return confirm('This will scan all reports. Continue?')">
+                            <i class="bi bi-arrow-repeat"></i> Generate Matches
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
 
-</section>
+        <!-- Matches Overview Section -->
+        <div class="matches-section">
+            <div class="section-header">
+                <h3><i class="bi bi-link-45deg me-2" style="color:var(--amber)"></i>Matches Overview</h3>
+            </div>
 
+            {% if matches %}
+            <div class="matches-grid">
+                {% for match in matches %}
+                <div class="match-card">
+                    <div class="match-image-wrap">
+                        {% if match.found_report.description and match.found_report.description.photo_url %}
+                            <img src="{{ match.found_report.description.photo_url }}" alt="Item Photo">
+                        {% else %}
+                            <div class="match-image-placeholder">
+                                <i class="bi bi-image"></i>
+                                <span>No Image</span>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Status Badge -->
+                        <div class="match-badge {{ match.status }}">
+                            <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
+                            {{ match.status | capitalize }}
+                        </div>
+                    </div>
+
+                    <div class="match-content">
+                        <h4>{{ match.found_report.description.item_type if match.found_report.description else 'Unnamed Item' }}</h4>
+                        
+                        <div class="match-for-banner">
+                            <i class="bi bi-person-circle"></i>
+                            <span>Match for User ID: {{ match.lost_report.user.userID }}</span>
+                        </div>
+
+                        <p class="match-location">
+                            <i class="bi bi-geo-alt"></i>
+                            {{ match.found_report.office_name if match.found_report.office_name else 'Security Office' }}
+                        </p>
+
+                        <div class="match-score-pill">
+                            <i class="bi bi-cpu"></i> AI Match Confidence
+                        </div>
+
+                        <div class="match-action">
+                        <a href="{{ url_for('views_bp.view_match_details', match_id=match.matchID) }}" class="btn-claim confirmed">
+                            <i class="bi bi-eye"></i> View Details
+                        </a>
+                    </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state card border-0 shadow-sm">
+                <i class="bi bi-inbox"></i>
+                <p>No matches have been generated yet.</p>
+                <small>Use the "Generate All Matches" tool above to begin synchronization.</small>
+            </div>
+            {% endif %}
+        </div>
+
+    </main>
+</div>
 {% endblock %}

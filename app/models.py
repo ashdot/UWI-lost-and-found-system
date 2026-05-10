@@ -13,7 +13,7 @@ class User(UserMixin,db.Model):
     firstName = db.Column(db.String(80))
     lastName = db.Column(db.String(80))
 
-    email = db.Column(db.String(100))
+    email = db.Column(db.String(100), unique=True) # Make this unique 
     password = db.Column(db.String(255))
 
     role = db.Column(db.String(20), nullable=False)
@@ -21,6 +21,9 @@ class User(UserMixin,db.Model):
     # This ensures ONLY these three strings can ever be saved in Postgres
     __table_args__ = (
         CheckConstraint(role.in_(['student', 'staff', 'admin']), name='role_types'),
+
+        # Add a composite index for name searches
+        db.Index('idx_user_names', 'firstName', 'lastName'),
     )
 
 
@@ -106,6 +109,10 @@ class LostItemDescription(db.Model):
     photo_url = db.Column(db.String(255), nullable=True)
     report_id = db.Column(db.Integer, db.ForeignKey('lost_item_report.reportID'))
 
+    def __repr__(self):
+        return f"{self.text_description}"
+
+
 
 #Picture should be optional here 
 class FoundItemReport(db.Model):
@@ -157,6 +164,10 @@ class FoundItemDescription(db.Model):
     
     photo_url = db.Column(db.String(255), nullable=True)
     report_id = db.Column(db.Integer, db.ForeignKey('found_item_report.reportID'))
+
+    def __repr__(self):
+        return f"{self.text_description}"
+
 
 
 class Match(db.Model):

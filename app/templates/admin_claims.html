@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block main %}
+<div class="user-dashboard">
+    <!-- Sidebar -->
+    {% include "user_sidebar.html" %}
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="topbar">
+            <div class="topbar-greeting">
+                <h1>Claim Management</h1>
+                <p>Verify and process pending item matches</p>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar mb-4">
+            <div class="filter-search-wrap">
+                <i class="bi bi-search"></i>
+                <input type="text" id="claimSearch" class="filter-input" placeholder="Search claims">
+            </div>
+        </div>
+
+        <!-- Claims Table -->
+        <div class="card shadow-sm border-0" style="border-radius: var(--radius); overflow: hidden;">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="claimsTable">
+                    <thead class="bg-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="ps-4">Match ID</th>
+                            <th>Item Type</th>
+                            <th>Lost By</th>
+                            <th>Found At</th>
+                            <th>AI Score</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for match in matches %}
+                        <tr>
+                            <td class="ps-4"><span class="fw-bold text-navy">#{{ match.matchID }}</span></td>
+                            <td>
+                                <span class="badge bg-soft-primary text-primary">
+                                    {{ match.found_report.description.item_type if match.found_report.description else 'Item' }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-semibold">{{ match.lost_report.user.firstName }} {{ match.lost_report.user.lastName }}</span>
+                                    <small class="text-muted">ID: {{ match.lost_report.userID }}</small>
+                                </div>
+                            </td>
+                            <td>{{ match.found_report.office_name }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1 me-2" style="height: 6px; min-width: 50px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ match.similarity_score * 100 }}%"></div>
+                                    </div>
+                                    <span class="small fw-bold">{{ "%.0f"|format(match.similarity_score * 100) }}%</span>
+                                </div>
+                            </td>
+                            <td class="text-end pe-4">
+                                <!-- Redirecting to the Detail View instead of a Modal -->
+                                <a href="{{ url_for('views_bp.view_match_details', match_id=match.matchID) }}" 
+                                   class="btn btn-sm btn-navy rounded-pill px-3">
+                                    <i class="bi bi-file-earmark-check me-1"></i> Review Match
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                No pending claims to process.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Simple JS Filter -->
+<script>
+    document.getElementById('claimSearch').addEventListener('keyup', function() {
+        let value = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#claimsTable tbody tr');
+        rows.forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}

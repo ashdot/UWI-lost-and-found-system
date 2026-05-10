@@ -7,12 +7,11 @@
   --muted:  #8492a6;
   --border: #e2e8f0;
   --radius: 14px;
-  --font-head: 'Plus Jakarta Sans', sans-serif;
+  /* --font-head: 'Lexend', sans-serif;
+  --font-body: 'Figtree', sans-serif; */
+  --font-head: 'Bricolage Grotesque', sans-serif;
   --font-body: 'Inter', sans-serif;
 }
-
-
-
 
 .user-dashboard {
   display: flex;
@@ -456,7 +455,7 @@
   font-size: .7rem;
 }
 
-/* ─── Match Badge (overlay on image) ────────────── */
+/* ─── Match Badge ─────────────────────── */
 .match-badge {
   position: absolute;
   top: 10px;
@@ -695,4 +694,261 @@
 .category-placeholder.electronics {
   background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
   color: #3f51b5;
+}
+
+.view-report-section {
+    max-width: 750px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+/* Header & Back Button */
+.section-header h3 {
+    font-weight: 700;
+    color: var(--navy);
+    margin: 0;
+}
+
+.btn-back {
+    text-decoration: none;
+    color: #64748b;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.btn-back:hover {
+    color: var(--teal);
+}
+
+/* Main Card */
+.report-detail-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Image Handling */
+.report-image-wrap img {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    border: 1px solid var(--border-color);
+}
+
+.report-image-placeholder {
+    width: 100%;
+    height: 250px;
+    background: var(--bg-light);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    color: #94a3b8;
+    border: 2px dashed var(--border-color);
+}
+
+.report-image-placeholder i {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Content Text */
+.report-content h4 {
+    color: var(--navy);
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.report-content p {
+    color: #475569;
+    line-height: 1.6;
+}
+/* Matches List - Compact Version */
+.matches-section h5 {
+    font-size: 0.9rem; /* Smaller, more subtle header */
+    color: var(--navy);
+    border-bottom: 1px solid var(--bg-light); /* Thinner line */
+    padding-bottom: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.list-group-item {
+    border-color: var(--border-color);
+    padding: 0.6rem 0.85rem; 
+    font-size: 0.85rem;      
+    transition: background 0.2s;
+}
+
+/* Ensure the match thumbnail shrinks with the row */
+.list-group-item img.img-thumbnail {
+    height: 45px !important; 
+    width: auto;
+}
+
+.list-group-item:hover {
+    background-color: #f8fafc;
+}
+
+/* Layout Container */
+.match-comparison-container {
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+/* Header & Score Pill */
+.comparison-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.back-link {
+    text-decoration: none;
+    color: #64748b;
+    font-size: 0.9rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.match-score-pill {
+    background: #f0fdfa;
+    border: 1px solid #99f6e4;
+    padding: 0.5rem 1.25rem;
+    border-radius: 50px;
+    text-align: center;
+}
+
+.score-label { font-size: 0.75rem; color: #0d9488; font-weight: 600; display: block; }
+.score-value { font-size: 1.25rem; font-weight: 800; color: #0f172a; }
+
+/* Grid System */
+.comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* Comparison Cards */
+.comparison-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.side-badge {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background: rgba(15, 23, 42, 0.8);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    z-index: 2;
+}
+
+/* Images */
+.comparison-image {
+    width: 100%;
+    height: 300px;
+    background: #f8fafc;
+}
+
+.comparison-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.no-image-placeholder {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+}
+
+.no-image-placeholder i { font-size: 3rem; margin-bottom: 0.5rem; }
+
+/* Details Text */
+.comparison-details {
+    padding: 1.5rem;
+}
+
+.item-type {
+    font-size: 1.5rem;
+    color: #0f172a;
+    margin-bottom: 1.25rem;
+    font-weight: 700;
+}
+
+.info-group {
+    margin-bottom: 1rem;
+}
+
+.info-group label {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    font-weight: 700;
+}
+
+.info-group p {
+    margin: 0;
+    color: #1e293b;
+    font-size: 0.95rem;
+}
+
+.description-text {
+    line-height: 1.6;
+    background: #f8fafc;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #f1f5f9;
+}
+
+/* Actions Bar */
+.comparison-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    padding: 2rem 0;
+    border-top: 1px solid #e2e8f0;
+}
+
+.action-btn {
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-reject { background: #fee2e2; color: #dc2626; }
+.btn-reject:hover { background: #fecaca; }
+
+.btn-confirm { background: #0f172a; color: white; }
+.btn-confirm:hover { background: #1e293b; transform: translateY(-2px); }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .comparison-grid { grid-template-columns: 1fr; }
+    .comparison-actions { flex-direction: column; }
+    .action-btn { width: 100%; justify-content: center; }
 }

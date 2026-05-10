@@ -1,0 +1,47 @@
+/* The Sidebar Drawer */
+#notifDrawer {
+    border-left: none;
+    box-shadow: -3px 0 25px rgba(0,0,0,0.1);
+}
+
+/* Individual Notification Item */
+.notif-item {
+    display: flex;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    transition: background 0.2s;
+    text-decoration: none;
+    color: inherit;
+}
+
+.notif-item:hover {
+    background-color: #e4e4e4;
+}
+
+/* Unread Styling: Blue tint and bold text */
+
+/* Icon Box */
+.notif-icon {
+    margin-right: 12px;
+    font-size: 1.2rem;
+    color: var(--teal);
+}
+
+/* Text & Timestamp */
+.notif-text {
+    font-size: 0.8rem;
+    margin-bottom: 2px;
+    line-height: 1.3;
+}
+
+.notif-time {
+    font-size: 0.75rem;
+    color: #888;
+}
+
+/* Center the "No Notifications" text */
+.empty-state {
+    text-align: center;
+    margin-top: 50px;
+    color: #aaa;
+}
