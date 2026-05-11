@@ -34,11 +34,21 @@
         </a>
 
         <a 
-            href="{{ url_for('views_bp.manage_claims') }}"
+            href="{{ url_for('admin_bp.manage_claims') }}"
             class="menu-item {% if active_page == 'manage_claims' %}active{% endif %}"
         >
-            <i class="bi bi-shield-check" style="color: var(--amber);"></i>
+             <i class="bi bi-shield-check" style="color: var(--amber);"></i>
             <span>Claim Management</span>
+        </a>
+
+        <p class="menu-label mt-4">MANAGE REPORTS</p>
+
+        <a 
+            href="{{ url_for('admin_bp.view_all_reports') }}"
+            class="menu-item {% if active_page == 'view_all_reports' %}active{% endif %}"
+        >
+            <i class="bi bi-shield-check" style="color: var(--off);"></i>
+            <span>Report Management</span>
         </a>
         {% endif %}
 

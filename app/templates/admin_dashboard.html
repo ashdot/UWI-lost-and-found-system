@@ -61,7 +61,7 @@
                             Run a CLIP-powered system scan to find matches missed during initial reporting.
                         </p>
                     </div>
-                    <form action="{{ url_for('views_bp.admin_auto_generate_all') }}" method="POST">
+                    <form action="{{ url_for('admin_bp.admin_auto_generate_all') }}" method="POST">
                         <button type="submit" class="btn-file-report" style="border:none;"
                                 onclick="return confirm('This will scan all reports. Continue?')">
                             <i class="bi bi-arrow-repeat"></i> Generate Matches
@@ -116,7 +116,7 @@
                         </div>
 
                         <div class="match-action">
-                        <a href="{{ url_for('views_bp.view_match_details', match_id=match.matchID) }}" class="btn-claim confirmed">
+                        <a href="{{ url_for('admin_bp.view_match_details', match_id=match.matchID) }}" class="btn-claim confirmed">
                             <i class="bi bi-eye"></i> View Details
                         </a>
                     </div>

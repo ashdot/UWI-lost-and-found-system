@@ -57,9 +57,11 @@
                                 <span class="file-cta">Click to upload or take a photo</span>
                                 <span class="file-hint">JPG, PNG or WEBP — max 15 MB</span>
                                 
-                                {# Allows user to take photos directly from phone #}
-                                {{ form.photo(class="", accept="image/*", capture="environment") }}
+                                {{ form.photo(class="form-control") }}
+                                <!-- {# Allows user to take photos directly from phone #}
+                                {{ form.photo(class="", accept="image/*", capture="environment") }} -->
                             </label>
+                            
                             <div class="form-text">A clear photo helps our CLIP model match this to lost reports.</div>
                             {% for error in form.photo.errors %}
                                 <div class="text-danger small">{{ error }}</div>

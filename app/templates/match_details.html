@@ -5,7 +5,7 @@
     <!-- Top Navigation & Title -->
     <div class="comparison-header">
         <div class="header-left">
-            <a href="{{ url_for('views_bp.admin_dashboard') }}" class="back-link">
+            <a href="{{ url_for('admin_bp.admin_dashboard') }}" class="back-link">
                 <i class="bi bi-arrow-left"></i> Back to Dashboard
             </a>
             <h2>Match Analysis</h2>
@@ -84,13 +84,13 @@
 
     <!-- Action Bar -->
     <div class="comparison-actions">
-        <form action="{{ url_for('views_bp.handle_match_action', match_id=match.matchID, action='reject') }}" method="POST">
+        <form action="{{ url_for('admin_bp.handle_match_action', match_id=match.matchID, action='reject') }}" method="POST">
             <button type="submit" class="action-btn btn-reject">
                 <i class="bi bi-x-lg"></i> Dismiss Match
             </button>
         </form>
         
-        <form action="{{ url_for('views_bp.handle_match_action', match_id=match.matchID, action='claimed') }}" method="POST">
+        <form action="{{ url_for('admin_bp.handle_match_action', match_id=match.matchID, action='claimed') }}" method="POST">
             <button type="submit" class="action-btn btn-confirm">
                 <i class="bi bi-check-lg"></i> Confirm & Close Claim
             </button>

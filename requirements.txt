@@ -10,6 +10,7 @@ Flask-Migrate
 SQLAlchemy
 mysql-connector-python
 email-validator
+pgvector
 python-dotenv
 psycopg2-binary
 spacy

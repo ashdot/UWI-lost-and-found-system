@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block main %}
+
+
+
+<div class="user-dashboard admin-dashboard-wrapper">
+
+    <!-- Sidebar -->
+    {% include "user_sidebar.html" %}
+
+    <!-- Main Content -->
+    <main class="main">
+
+    <!-- FOUND REPORTS SECTION (TOP) -->
+    <section class="reports-section">
+
+        <div class="section-header">
+            <h3>
+                <i class="bi bi-search me-2" style="color:var(--teal)"></i>
+                All Found Item Reports
+            </h3>
+        </div>
+
+        {% if found_reports %}
+        <div class="reports-grid">
+            {% for report in found_reports %}
+            <div class="report-card">
+                <div class="report-image-wrap">
+                    {% if report.description and report.description.photo_url %}
+                    <img src="{{ report.description.photo_url }}" alt="Item photo">
+                    {% else %}
+                    <div class="report-image-placeholder category-placeholder" data-category="{{ report.description.item_type if report.description else 'misc' }}">
+                        <i class="bi bi-box-seam"></i>
+                        <span>Found Item</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="report-content">
+                    {% if report.description %}
+                    <div class="item-type-tag">{{ report.description.item_type }}</div>
+                    {% endif %}
+
+                    <h4>{{ report.description.text_description if report.description else 'Unknown Item' }}</h4>
+                    <p class="report-date">
+                        <i class="bi bi-calendar3"></i>
+                        Found {{ report.date_found.strftime('%b %d, %Y') if report.date_found else 'Unknown' }}
+                    </p>
+
+                    <!-- Admin Action Buttons -->
+                    <div class="d-flex gap-2 mt-2">
+                        <a href="{{ url_for('views_bp.edit_found_report', report_id=report.reportID) }}" class="btn-claim" style="background:#f4f6f9;color:var(--navy);flex:1;font-size:.7rem; text-align:center;">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('views_bp.delete_found_report', report_id=report.reportID) }}" onsubmit="return confirm('Delete this found report?');" style="flex:1;">
+                            <button type="submit" class="btn-claim" style="background:#fff1f2;color:#e11d48;width:100%;font-size:.7rem;">
+                                <i class="bi bi-trash3"></i> 
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>No found reports available.</p>
+        </div>
+        {% endif %}
+    </section>
+
+    <hr class="my-5">
+
+    <!-- LOST REPORTS SECTION (BOTTOM) -->
+    <section class="reports-section">
+        <div class="section-header">
+            <h3>
+                <i class="bi bi-clipboard-minus me-2" style="color:var(--teal)"></i>
+                All Lost Item Reports
+            </h3>
+        </div>
+
+        {% if lost_reports %}
+        <div class="reports-grid">
+            {% for report in lost_reports %}
+            <div class="report-card">
+                <div class="report-image-wrap">
+                    {% if report.description and report.description.photo_url %}
+                    <img src="{{ report.description.photo_url }}" alt="Item photo">
+                    {% else %}
+                    <div class="report-image-placeholder category-placeholder" data-category="{{ report.description.item_type if report.description else 'misc' }}">
+                        <i class="bi bi-question-circle"></i>
+                        <span>Lost Item</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="report-content">
+                    {% if report.description %}
+                    <div class="item-type-tag">{{ report.description.item_type }}</div>
+                    {% endif %}
+
+                    <h4>{{ report.description.text_description if report.description else 'Unknown Item' }}</h4>
+                    <p class="report-date">
+                        <i class="bi bi-calendar3"></i>
+                        Lost {{ report.date_lost.strftime('%b %d, %Y') if report.date_lost else 'Unknown' }}
+                    </p>
+
+                    <div class="d-flex gap-2 mt-2">
+                        <a href="{{ url_for('views_bp.edit_lost_report', report_id=report.reportID) }}" class="btn-claim" style="background:#f4f6f9;color:var(--navy);flex:1;font-size:.7rem; text-align:center;">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('views_bp.delete_lost_report', report_id=report.reportID) }}" onsubmit="return confirm('Delete this lost report?');" style="flex:1;">
+                            <button type="submit" class="btn-claim" style="background:#fff1f2;color:#e11d48;width:100%;font-size:.7rem;">
+                                <i class="bi bi-trash3"></i> 
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>No lost reports available.</p>
+        </div>
+        {% endif %}
+    </section>
+
+     </main>
+</div>
+{% endblock %}

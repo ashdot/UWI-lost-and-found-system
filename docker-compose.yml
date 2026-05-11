@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: uwi_capstone_db
+    ports:
+      - "5432:5432"
+    environment:
+      # This matches your DATABASE_URL exactly
+      - POSTGRES_USER=capstone
+      - POSTGRES_PASSWORD=lostandfound123
+      - POSTGRES_DB=lost_and_found
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  postgres_data:

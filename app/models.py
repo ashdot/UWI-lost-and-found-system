@@ -3,13 +3,16 @@ from .extensions import db
 from sqlalchemy import CheckConstraint
 from datetime import datetime, timedelta, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
+from pgvector.sqlalchemy import Vector
+
 
 class User(UserMixin,db.Model):
 
     __tablename__ = 'User'
     
+    #User Details 
     userID = db.Column(db.Integer, primary_key=True)
-
+    
     firstName = db.Column(db.String(80))
     lastName = db.Column(db.String(80))
 
@@ -66,21 +69,20 @@ class LostItemReport(db.Model):
     
     __tablename__ = 'lost_item_report'
 
+    #Report Details 
     reportID = db.Column(db.Integer, primary_key=True)
     phone = db.Column(db.String(15)) # Increased for flexibility
     date_lost = db.Column(db.DateTime, default=db.func.current_timestamp())
 
-    # Foreign Key
-    # Make sure 'User.userID' matches your User model's table/column exactly
+    # Foreign Keys
     userID = db.Column(db.Integer, db.ForeignKey('User.userID'), nullable=False)
 
     # Relationships
-    
-    # 1. CRITICAL: This allows the email logic to find the user's email address
+
+    #One-to-Many with User 
     user = db.relationship('User', backref='lost_reports')
 
-    # 2. One-to-One with Description
-    # cascade="all, delete-orphan" deletes description if the report is deleted
+    #One-to-One with Description
     description = db.relationship(
         'LostItemDescription', 
         backref='report', 
@@ -88,7 +90,7 @@ class LostItemReport(db.Model):
         cascade="all, delete-orphan"
     )
 
-    # 3. Matches associated with this lost report
+    #One-to-Many with Matches 
     matches = db.relationship('Match', backref='lost_report', cascade="all, delete-orphan")
 
     def __repr__(self):
@@ -97,16 +99,23 @@ class LostItemReport(db.Model):
 class LostItemDescription(db.Model):
     __tablename__ = 'lost_item_description'
 
+    # Description Details 
     id = db.Column(db.Integer, primary_key=True)
     item_type = db.Column(db.String(50))
     text_description = db.Column(db.Text)
     
-    # Text AI Numbers
-    text_embedding = db.Column(db.PickleType)
-    # ADD THIS: Image AI Numbers
-    image_embedding = db.Column(db.PickleType, nullable=True) 
+    # Embeddings Stored from CLIP model generate_embeddings() function
 
+    # text_embedding_old = db.Column(db.PickleType, name="text_embedding", nullable=True) 
+    # image_embedding_old = db.Column(db.PickleType, name="image_embedding", nullable=True)
+    
+    text_embed = db.Column(Vector(512), nullable=True) #Used PgVector for faster retrieva; 
+    image_embed = db.Column(Vector(512), nullable=True)  
+
+    #Photo URL to link to Cloudinary Cloud 
     photo_url = db.Column(db.String(255), nullable=True)
+
+    #Foreign Key
     report_id = db.Column(db.Integer, db.ForeignKey('lost_item_report.reportID'))
 
     def __repr__(self):
@@ -118,6 +127,7 @@ class LostItemDescription(db.Model):
 class FoundItemReport(db.Model):
     __tablename__ = 'found_item_report'
 
+    #Report Details 
     reportID = db.Column(db.Integer, primary_key=True)
     phone = db.Column(db.String(15)) # Increased to 15 for international formats/extensions
     date_found = db.Column(db.DateTime, default=db.func.current_timestamp())
@@ -127,15 +137,14 @@ class FoundItemReport(db.Model):
     office_directions = db.Column(db.String(255))
 
     # Foreign Keys
-    # Note: Ensure 'User' matches your User model's __tablename__
     adminID = db.Column(db.Integer, db.ForeignKey('User.userID'), nullable=False)
 
     # Relationships
-    # 1. Links the report to the admin who filed it
+
+    # One-to-Many with Admin 
     admin = db.relationship('User', backref='found_reports')
 
-    # 2. One-to-One relationship with the description
-    # cascade="all, delete-orphan" ensures if a report is deleted, the description is too
+    # 2. One-to-One with Description 
     description = db.relationship(
         'FoundItemDescription', 
         backref='report', 
@@ -153,16 +162,23 @@ class FoundItemReport(db.Model):
 class FoundItemDescription(db.Model):
     __tablename__ = 'found_item_description'
 
+    # Description Details 
     id = db.Column(db.Integer, primary_key=True)
     item_type = db.Column(db.String(50))
     text_description = db.Column(db.Text, nullable=True)
     
-    # Text AI Numbers
-    text_embedding = db.Column(db.PickleType, nullable=True)
-    # ADD THIS: Image AI Numbers
-    image_embedding = db.Column(db.PickleType, nullable=True) 
+    # Embeddings Stored from CLIP model generate_embeddings() function
+
+    # text_embedding_old = db.Column(db.PickleType, name="text_embedding", nullable=True) 
+    # image_embedding_old = db.Column(db.PickleType, name="image_embedding", nullable=True)
     
+    text_embed = db.Column(Vector(512), nullable=True) #Used PgVector for faster retrieva; 
+    image_embed = db.Column(Vector(512), nullable=True) 
+    
+    # Photo URL to link to Cloudinary Cloud 
     photo_url = db.Column(db.String(255), nullable=True)
+
+    # Foreign Key 
     report_id = db.Column(db.Integer, db.ForeignKey('found_item_report.reportID'))
 
     def __repr__(self):
@@ -173,8 +189,10 @@ class FoundItemDescription(db.Model):
 class Match(db.Model):
     __tablename__ = 'match'
 
+    #Match Details 
     matchID = db.Column(db.Integer, primary_key=True)
     
+    #Foreign Keys 
     lost_report_id = db.Column(db.Integer, db.ForeignKey('lost_item_report.reportID'), nullable=False)
     found_report_id = db.Column(db.Integer, db.ForeignKey('found_item_report.reportID'), nullable=False)
 
@@ -190,18 +208,13 @@ class Match(db.Model):
 class Notification(db.Model):
     __tablename__ = 'notification'
 
-    #Uniquely Identifies Notification 
+    #Notification Details 
     notification_id = db.Column(db.Integer, primary_key=True)
-    
-    #Message attached to Notification 
     message = db.Column(db.String(255))
-
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
-    #Links to User 
+    #Foreign Keys 
     userID = db.Column(db.Integer, db.ForeignKey('User.userID'))
-    
-    #Links to Match 
     match_id = db.Column(db.Integer, db.ForeignKey('match.matchID'))
 
     #Relationship to User 

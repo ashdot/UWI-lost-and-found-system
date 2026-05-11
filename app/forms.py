@@ -28,7 +28,6 @@ class LostItemReportForm(FlaskForm):
     category = SelectField('Item Category', choices=ITEM_CATEGORIES)
     date_lost = DateTimeLocalField('Date and Time Lost', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
     phone_number = StringField('Phone', validators=[InputRequired()])
-    name = StringField('Name', validators=[InputRequired()])
     description = TextAreaField('Description', validators=[InputRequired()]) 
     photo = FileField('Photo (Optional)', validators=[Optional(), FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')])
 

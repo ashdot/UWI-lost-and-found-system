@@ -37,7 +37,7 @@ class Config(object):
 
     BREVO_API_KEY = os.environ.get('BREVO_API_KEY')
 
-    max_size = os.environ.get('MAX_CONTENT_LENGTH', 10 * 1024 * 1024) # Default to 10MB if missing
+    # max_size = os.environ.get('MAX_CONTENT_LENGTH', 10 * 1024 * 1024) # Default to 10MB if missing
     
 
 
