@@ -11,10 +11,15 @@ from PIL import Image
 import sys # SPINNER 
 import threading
 import time
+from datetime import datetime
 
 ##
 # PG-VECTOR 
 ##
+
+
+
+
 
 
 # Global variables initialized as None for Lazy Loading
@@ -213,6 +218,21 @@ def keyword_similarity(lost_keywords, found_keywords):
     ls, fs = set(lost_keywords), set(found_keywords)
     return len(ls.intersection(fs)) / len(ls.union(fs))
 
+def calculate_time_score(lost_date, found_date, max_days=14):
+    """
+    Compares the date lost vs date found.
+    1.0 = Same day
+    0.0 = More than max_days apart
+    """
+    if not lost_date or not found_date:
+        return 0.5 # Neutral if a date is missing
+
+    delta = abs((lost_date - found_date).days)
+    
+    # Linear decay: The match probability drops as days increase
+    time_score = max(0, 1 - (delta / max_days))
+    return time_score
+
 def match_lost_found(lost_report, found_report):
 
     """
@@ -257,6 +277,11 @@ def match_lost_found(lost_report, found_report):
     l_keys = extract_keyword(l_text)
     f_keys = extract_keyword(f_text)
     kw_score = keyword_similarity(l_keys, f_keys)
+
+    # Time Score 
+    l_date = getattr(lost_report, 'date_lost', None)
+    f_date = getattr(found_report, 'date_found', None)
+    time_score = calculate_time_score(l_date, f_date, max_days=14) # 2-week window
 
 
 
@@ -353,3 +378,159 @@ def match_lost_found(lost_report, found_report):
         "found_category": found_cat,
         "category_match": True
     }
+
+
+
+
+
+
+
+# def match_lost_found(lost_report, found_report):
+
+#     """
+#     Main matching logic for system UWI Lost and Found.
+#     Handles Vision-to-Vision, Text-to-Text, and Cross-Modal (Text-to-Vision) matching.
+#     """
+
+#     # Extracts Categories from Database 
+#     lost_cat = lost_report.description.item_type
+#     found_cat = found_report.description.item_type
+    
+#     # If Categories don't match an exit is made ( eg. Computers and Electionics with Clothing)
+#     if lost_cat != found_cat:
+#         return {
+#             "final_score": 0.0, 
+#             "is_high_match": False,
+#             "match_status": "none",
+#             "image_score": 0,
+#             "text_score": 0,
+#             "keyword_score": 0,
+#             "lost_category": lost_cat,
+#             "found_category": found_cat,
+#             "category_match": False
+#         }
+
+#     # Extracts the text descriptions from each report 
+#     l_text = lost_report.description.text_description or ""
+#     f_text = found_report.description.text_description or ""
+    
+#     # Cleans up the results for AI usage 
+#     if f_text.lower() == "no description":
+#         f_text = "" 
+
+#     # The Scoring Logic 
+
+#     # Keyword Score (spaCy)
+
+#     """
+#     Extracts the Key Words from each Report and Applies Keyword Similarity Function to 
+#     calculate a Key Word Score. 
+#     """
+#     l_keys = extract_keyword(l_text)
+#     f_keys = extract_keyword(f_text)
+#     kw_score = keyword_similarity(l_keys, f_keys)
+
+#     # Time Score 
+#     l_date = getattr(lost_report, 'date_lost', None)
+#     f_date = getattr(found_report, 'date_found', None)
+#     time_score = calculate_time_score(l_date, f_date, max_days=14) # 2-week window
+
+
+
+
+
+#     # Text Similarity Score (CLIP Text-to-Text)
+
+#     """
+#     Extracts the text_embeddings from both the lost and found reports to apply 
+#     the cosine similarity function in order to get the text_score from the vector 
+#     embeddings stored in the database 
+#     """
+
+#     text_score = 0
+#     if lost_report.description.text_embed is not None and found_report.description.text_embed is not None and f_text != "":
+#         text_score = cosine_similarity(
+#             lost_report.description.text_embed, 
+#             found_report.description.text_embed
+#         )
+
+#     # Image Score (CLIP Vision-to-Vision OR Cross-Modal)
+
+#     """
+#     Extracts image_embeddings and text_embeddings from the lost and found reports to apply
+#     cosine similarity function 
+
+#     User Upload :  
+
+#     1. If both have image_embeddings -> Image to Image Scoring 
+#     2. If lost report has text_embedding and found report has image_embedding -> Image to Text Scoring 
+
+#     """
+
+#     img_score = 0
+#     l_img_vec = getattr(lost_report.description, 'image_embed', None)
+#     f_img_vec = getattr(found_report.description, 'image_embed', None)
+#     l_text_vec = lost_report.description.text_embed
+
+#     if l_img_vec is not None and f_img_vec is not None:
+#         # Scenario A: Both have images
+#         img_score = cosine_similarity(l_img_vec, f_img_vec)
+#     elif l_text_vec is not None and f_img_vec is not None:
+#         # Scenario B: Lost has text, Found has image (Cross-Modal)
+#         img_score = cosine_similarity(l_text_vec, f_img_vec)
+
+#     # 4. Final Score Calculation 
+
+#     # Scenario 1: Found Item has no usable text description
+#     if not f_text:
+#         final_score = img_score
+#         if l_img_vec is not None and f_img_vec is not None:
+#             high_threshold = 0.65 # Similarity above 65% ->  a high match.
+#             potential_threshold = 0.50 # Similarity above 50% -> a potential match.
+#         else:
+#             # Cross-modal thresholds (lower due to different vector spaces)
+#             high_threshold = 0.35 #Similarity above 35% ->  a high match.
+#             potential_threshold = 0.28 # Similarity above 28% -> a potential match.
+
+#     # Scenario: Both have Text + Image + Time
+#     if img_score > 0 and text_score > 0:
+#         # We give Time a 20% seat at the table
+#         # Image (50%) + Text (20%) + Time (20%) + Keywords (10%)
+#         final_score = (0.5 * img_score) + (0.2 * text_score) + (0.2 * time_score) + (0.1 * kw_score)
+#         high_threshold = 0.62 
+#         potential_threshold = 0.48
+    
+#     # Scenario: Found item has no description (Image + Time only)
+#     elif not f_text and img_score > 0:
+#         # Image (70%) + Time (30%)
+#         final_score = (0.7 * img_score) + (0.3 * time_score)
+#         high_threshold = 0.65
+#         potential_threshold = 0.50
+
+#     # Scenario: Text-to-Text Fallback
+#     else:
+#         # Text (60%) + Time (30%) + Keywords (10%)
+#         final_score = (0.6 * text_score) + (0.3 * time_score) + (0.1 * kw_score)
+#         high_threshold = 0.58
+#         potential_threshold = 0.42
+
+#     # 5. Determine Match Status
+#     match_status = "none"
+#     if final_score >= high_threshold:
+#         match_status = "high"
+#     elif final_score >= potential_threshold:
+#         match_status = "potential"
+
+#     return {
+#         "final_score": round(final_score, 4),
+#         "match_status": match_status,
+#         "is_high_match": match_status == "high",
+#         "threshold_used": high_threshold,
+#         "image_score": round(img_score, 4),
+#         "time_score": round(time_score, 4),
+#         "text_score": round(text_score, 4),
+#         "keyword_score": round(kw_score, 4),
+#         "lost_category": lost_cat,
+#         "found_category": found_cat,
+#         "category_match": True
+#     }

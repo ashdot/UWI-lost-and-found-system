@@ -12,7 +12,8 @@ from .forms import LostItemReportForm, FoundItemReportForm
 from .models import LostItemReport, FoundItemReport, LostItemDescription, FoundItemDescription, Match, Notification
 from .extensions import db, mail
 
-from .match import generate_embeddings, match_lost_found
+#from .match import generate_embeddings, match_lost_found
+from .match3 import generate_embeddings, match_lost_found
 
 admin_bp = Blueprint('admin_bp', __name__)
 
