@@ -71,6 +71,46 @@
             </div>
         </div>
 
+        <!-- ── Filter Bar ── -->
+        <div class="filter-bar">
+
+            <select class="filter-select" id="filterCategory" onchange="applyFilters()">
+                <option value="">All Categories</option>
+                <option value="bags_backpacks">Bags & Backpacks</option>
+                <option value="bottles_flasks">Bottles & Flasks</option>
+                <option value="clothing">Clothing</option>
+                <option value="computers_electronics">Computers & Electronics</option>
+                <option value="eyewear">Eyewear</option>
+                <option value="footwear">Footwear</option>
+                <option value="ids_cards">IDs & Cards</option>
+                <option value="keys">Keys</option>
+                <option value="mobile_devices">Mobile Devices</option>
+                <option value="wallets_purses">Wallets & Purses</option>
+                <option value="watches_jewelry">Watches & Jewelry</option>
+                <option value="misc">Miscellaneous</option>
+            </select>
+
+            <input 
+                type="date" 
+                class="filter-input" 
+                id="filterDate" 
+                onchange="applyFilters()" 
+            />
+
+            <div class="filter-search-wrap">
+                <i class="bi bi-search"></i>
+                <input 
+                    type="text" 
+                    class="filter-input" 
+                    id="filterName"
+                    placeholder="Search by item name…"
+                    oninput="applyFilters()"
+                />
+            </div>
+
+        </div>
+
+
         <!-- Matches Overview Section -->
         <div class="matches-section">
             <div class="section-header">
@@ -78,9 +118,13 @@
             </div>
 
             {% if matches %}
-            <div class="matches-grid">
+            <div class="matches-grid" id="matchesGrid">
                 {% for match in matches %}
-                <div class="match-card">
+                <div class="match-card"
+                    data-category="{{ (match.found_report.description.item_type or '') ~ ' ' ~ (match.lost_report.description.item_type or '') }}"
+                    data-date="{{ (match.found_report.date_found or '') ~ ' ' ~ (match.lost_report.date_lost or '') }}"
+                    data-name="{{ (match.found_report.description.item_type or '') ~ ' ' ~ (match.lost_report.description.item_type or '') }}"
+                    data-description="{{ (match.found_report.description.text_description or '') ~ ' ' ~ (match.lost_report.description.text_description or '') }}">
                     <div class="match-image-wrap">
                         {% if match.found_report.description and match.found_report.description.photo_url %}
                             <img src="{{ match.found_report.description.photo_url }}" alt="Item Photo">
@@ -135,4 +179,51 @@
 
     </main>
 </div>
+
+<!-- Filter Script -->
+<script>
+  function applyFilters() {
+    // 1. Safely grab the elements
+    const catEl = document.getElementById('filterCategory');
+    const dateEl = document.getElementById('filterDate');
+    const searchEl = document.getElementById('filterName');
+
+    // 2. Get values (using empty string fallbacks)
+    const catValue = catEl ? catEl.value.toLowerCase() : '';
+    const dateValue = dateEl ? dateEl.value : '';
+    const searchValue = searchEl ? searchEl.value.toLowerCase() : '';
+
+    document.querySelectorAll('#matchesGrid .match-card').forEach(card => {
+        // 3. Extract data from attributes safely
+        const cardCat   = (card.dataset.category || '').toLowerCase();
+        const cardDate  = (card.dataset.date || '');
+        const cardName  = (card.dataset.name || '').toLowerCase();
+        const cardDesc  = (card.dataset.description || '').toLowerCase();
+
+        // 4. Filtering Logic
+        // Category: Match if filter is empty OR if the card's category string contains the filter
+        const matchCat = !catValue || cardCat.includes(catValue);
+
+        // Date: Match if filter is empty OR if the card's date string contains the selected date
+        const matchDate = !dateValue || cardDate.includes(dateValue);
+        
+        // Search: Match if name or description contains the search term
+        const matchSearch = !searchValue || 
+                            cardName.includes(searchValue) || 
+                            cardDesc.includes(searchValue);
+
+        // 5. Final Display Toggle
+        card.style.display = (matchCat && matchDate && matchSearch) ? '' : 'none';
+    });
+}
+
+function toggleDirections(id) {
+    const el = document.getElementById(id);
+    if (el.style.display === "none") {
+        el.style.display = "block";
+    } else {
+        el.style.display = "none";
+    }
+}
+</script>
 {% endblock %}

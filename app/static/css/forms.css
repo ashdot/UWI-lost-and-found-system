@@ -18,11 +18,12 @@ body {
    LOGIN FORM
 ═══════════════════════════════════════════════════ */
 .login-page {
-    width: 100vw;
+    width: 100%;
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 20px;
     background: url("../images/login-background.png") no-repeat center center;
     background-size: cover;
 }
@@ -54,6 +55,27 @@ body {
 .uwi-logo {
     width: auto;
     height: 100px;
+}
+
+@media (max-width: 576px) {
+    .login-card {
+        padding: 30px 20px; /* Less horizontal padding on small screens */
+        border-radius: 20px;
+    }
+
+    .header {
+        flex-direction: column; /* Stack logo and text if they don't fit side-by-side */
+        text-align: center;
+        gap: 5px;
+    }
+
+    .uwi-logo {
+        height: 60px;
+    }
+    
+    h1 {
+        font-size: 1.5rem; /* Ensure text doesn't overflow */
+    }
 }
 
 /*

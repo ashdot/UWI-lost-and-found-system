@@ -107,9 +107,9 @@
                     </p>
 
                     <div class="d-flex gap-2 mt-2">
-                        <a href="{{ url_for('views_bp.edit_lost_report', report_id=report.reportID) }}" class="btn-claim" style="background:#f4f6f9;color:var(--navy);flex:1;font-size:.7rem; text-align:center;">
+                        <!-- <a href="{{ url_for('views_bp.edit_lost_report', report_id=report.reportID) }}" class="btn-claim" style="background:#f4f6f9;color:var(--navy);flex:1;font-size:.7rem; text-align:center;">
                             <i class="bi bi-pencil"></i>
-                        </a>
+                        </a> -->
                         <form method="POST" action="{{ url_for('views_bp.delete_lost_report', report_id=report.reportID) }}" onsubmit="return confirm('Delete this lost report?');" style="flex:1;">
                             <button type="submit" class="btn-claim" style="background:#fff1f2;color:#e11d48;width:100%;font-size:.7rem;">
                                 <i class="bi bi-trash3"></i> 
