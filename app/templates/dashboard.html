@@ -101,7 +101,7 @@
         <!-- ── Filter Bar ── -->
         <div class="filter-bar">
 
-            <select class="filter-select" id="filterCategory" onchange="applyFilters()">
+            <select class="filter-select" id="filterCategory" aria-label="Filter Category" onchange="applyFilters()">
                 <option value="">All Categories</option>
                 <option value="bags_backpacks">Bags & Backpacks</option>
                 <option value="bottles_flasks">Bottles & Flasks</option>
@@ -121,6 +121,7 @@
                 type="date" 
                 class="filter-input" 
                 id="filterDate" 
+                aria-label="Filter Date"
                 onchange="applyFilters()" 
             />
 
@@ -262,7 +263,8 @@
                                 onsubmit="return confirm('Delete this report?');"
                                 style="flex:1;">
                                 <button type="submit" class="btn-claim"
-                                        style="background:#fff1f2;color:#e11d48;width:100%;font-size:.7rem;">
+                                        style="background:#fff1f2;color:#e11d48;width:100%;font-size:.7rem;"
+                                        aria-label="Delete this report">
                                     <i class="bi bi-trash3"></i> 
                                 </button>
                             </form>
@@ -315,7 +317,7 @@
                     <!-- Image -->
                     <div class="match-image-wrap">
                         {% if found_desc and found_desc.photo_url %}
-                        <img src="{{ found_desc.photo_url }}" alt="Found item" loading="lazy" />
+                        <img src="{{ found_desc.photo_url }}" alt="Found item" loading="lazy" class="blurred-image" />
                         {% else %}
                         <div class="match-image-placeholder category-placeholder" data-category="{{ found_desc.item_type if found_desc else 'misc' }}">
                             
@@ -503,7 +505,7 @@
             <i class="bi bi-bell me-2" style="color:var(--teal)"></i>
             Notifications
         </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Notifications"></button>
     </div>
 
     <div class="offcanvas-body px-4">

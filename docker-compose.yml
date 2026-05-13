@@ -5,7 +5,7 @@ services:
     image: pgvector/pgvector:pg16
     container_name: uwi_capstone_db
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       # This matches your DATABASE_URL exactly
       - POSTGRES_USER=capstone

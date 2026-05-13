@@ -8,17 +8,17 @@ app = create_app()
 
 def setup():
     with app.app_context():
-        # 1. Enable pgvector extension inside the DB
+        # Enables pgvector extension inside the DB
         print("🛠️ Enabling pgvector extension...")
         db.session.execute(sqlalchemy.text("CREATE EXTENSION IF NOT EXISTS vector;"))
         db.session.commit()
 
-        # 2. Create Tables
+        # Create Tables
         print("🏗️ Creating database tables...")
         db.drop_all() # Fresh start
         db.create_all()
 
-        # 3. Generate 100 Users (Updated with your ID format)
+        # Generates 100 Users (Updated with your ID format)
         print("👥 Generating 100 test users...")
         clean_hash = generate_password_hash('password123', method='pbkdf2:sha256')
         
@@ -32,8 +32,9 @@ def setup():
                 lastName=random.choice(lnames),
                 email=f"user{i}@test.com",
                 role="student" if i > 5 else "admin",
-                password=None # We'll set the hash directly below
+                password=None 
             )
+            #Hashing applied before addition to database
             user.password = clean_hash 
             db.session.add(user)
         

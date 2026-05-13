@@ -6,12 +6,6 @@ import cloudinary.uploader
 # Load variables from .env
 load_dotenv()
 
-# cloudinary.config(
-#     cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
-#     api_key=os.getenv("CLOUDINARY_API_KEY"),
-#     api_secret=os.getenv("CLOUDINARY_API_SECRET")
-# )
-
 
 
 class Config(object):
@@ -37,7 +31,6 @@ class Config(object):
 
     BREVO_API_KEY = os.environ.get('BREVO_API_KEY')
 
-    # max_size = os.environ.get('MAX_CONTENT_LENGTH', 10 * 1024 * 1024) # Default to 10MB if missing
     
 
 

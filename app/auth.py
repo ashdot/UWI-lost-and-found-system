@@ -12,21 +12,6 @@ auth_bp = Blueprint('auth_bp', __name__)
 from werkzeug.security import check_password_hash
 from .models import User 
 
-# def verify_user(user_id, user_password):
-#     user = User.query.filter_by(userID=user_id).first()
-
-
-#     if user and check_password_hash(user.password, user_password):
-#         return {
-#             "role": user.role,
-#             "student_id": user.userID,    # Matches model.userID
-#             "first_name": user.firstName, # Matches model.firstName
-#             "last_name": user.lastName,   # Matches model.lastName
-#             "email": user.email
-#         }
-        
-#     return None
-
 def verify_user(user_id, user_password):
     user = User.query.filter_by(userID=user_id).first()
     
@@ -53,6 +38,9 @@ def verify_user(user_id, user_password):
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
+    """
+    Logs in user 
+    """
     form = LoginForm()
     if form.validate_on_submit():
         user_data = verify_user(form.userID.data, form.password.data)
@@ -71,6 +59,9 @@ def login():
 @auth_bp.route("/logout")
 @login_required
 def logout():
+    """
+    Logs out current user 
+    """
     logout_user()
     flash("You have been logged out.", "info")
     return redirect(url_for("auth_bp.login"))

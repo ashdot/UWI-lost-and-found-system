@@ -4,7 +4,7 @@ from wtforms.validators import InputRequired, DataRequired, Optional
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from wtforms.fields import DateTimeLocalField
 
-# Reusable choices 
+# Reusable choices ( Can be changed for future implemetations )
 ITEM_CATEGORIES = [
     ('bags_backpacks', 'Bags & Backpacks'),
     ('bottles_flasks', 'Bottles & Flasks'),

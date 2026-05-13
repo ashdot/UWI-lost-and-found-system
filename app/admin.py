@@ -5,30 +5,26 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import current_user, login_required
 
 from flask_mail import Message
-from sqlalchemy import func
-from sqlalchemy.orm import joinedload
 
-from .forms import LostItemReportForm, FoundItemReportForm
-from .models import LostItemReport, FoundItemReport, LostItemDescription, FoundItemDescription, Match, Notification
+from .models import LostItemReport, FoundItemReport, Match, Notification
 from .extensions import db, mail
 
-#from .match import generate_embeddings, match_lost_found
-from .match3 import generate_embeddings, match_lost_found
+from .match import generate_embeddings, match_lost_found
 
 admin_bp = Blueprint('admin_bp', __name__)
 
 @admin_bp.route("/admin/dashboard")
 @login_required 
 def admin_dashboard():
-    # 1. Security Check
+
+    # Only allows admins to view dashboard 
     if current_user.role != "admin":
         return redirect(url_for("views_bp.dashboard"))
     
-    # 2. Retrieve GLOBAL Matches (The Fix)
-    # Instead of filtering by the admin's personal ID, get all matches
+    # Retrives all matches 
     matches = Match.query.all()
 
-    # 3. Analytics Section
+    # Analytics Section
     total_lost = LostItemReport.query.count()
     total_found = FoundItemReport.query.count()
     pending_claims = Match.query.filter_by(status='pending').count()
@@ -36,7 +32,7 @@ def admin_dashboard():
 
     return render_template(
         "admin_dashboard.html", 
-        matches=matches,  # Now contains all system matches
+        matches=matches, 
         stats={
             "total_lost": total_lost,
             "total_found": total_found,
@@ -47,6 +43,8 @@ def admin_dashboard():
 
 @admin_bp.route('/admin/reports/all')
 def view_all_reports():
+
+    #Only allows admin to view all user reports 
     if current_user.role != "admin":
         return redirect(url_for("views_bp.dashboard"))
 
@@ -72,6 +70,8 @@ def manage_claims():
 
 @admin_bp.route('/match/details/<int:match_id>')
 def view_match_details(match_id):
+
+    #Only allows admin to view match details 
     if current_user.role != "admin":
         return redirect(url_for("views_bp.dashboard"))
 
@@ -90,6 +90,8 @@ def view_match_details(match_id):
 @admin_bp.route("/match/<int:match_id>/action/<string:action>", methods=["POST"])
 @login_required
 def handle_match_action(match_id, action):
+
+    #Only allows admin to handle match actions 
     if current_user.role != "admin":
         flash("Unauthorized: Admins only.", "danger")
         return redirect(url_for("views_bp.dashboard"))
@@ -155,7 +157,7 @@ def admin_auto_generate_all():
                     # 4. Notify the user who lost the item
                     new_notif = Notification(
                         userID=lost_item.userID,
-                        message=f"New match found for your {lost_item.description.item_type}!",
+                        message=f"New match found for yout item in{lost_item.description.item_type}!",
                         match_id=new_match.matchID 
                     )
                     db.session.add(new_notif)
@@ -171,6 +173,27 @@ def admin_auto_generate_all():
 
     return redirect(url_for("admin_bp.admin_dashboard"))
 
+# --- DELETE LOST REPORT ---
+@admin_bp.route("/admin/report-lost/<int:report_id>/delete", methods=["POST"])
+@login_required
+def admin_delete_lost_report(report_id):
+    report = LostItemReport.query.get_or_404(report_id)
+
+    # Only allow admin to delete
+    if  current_user.role != "admin":
+        flash("Unauthorized: You cannot delete this report.", "danger")
+        return redirect(url_for("views_bp.dashboard"))
+
+    try:
+        db.session.delete(report)
+        db.session.commit()
+        flash("Lost report deleted successfully.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash("Error deleting report.", "danger")
+        print(f"❌ DELETE ERROR: {e}")
+
+    return redirect(url_for("admin_bp.admin_dashboard"))
 
 
 

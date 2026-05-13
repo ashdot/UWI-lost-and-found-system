@@ -54,7 +54,7 @@
             {% endif %}
           </div>
           {% if match.found_report.description and match.found_report.description.photo_url %}
-            <img src="{{ match.found_report.description.photo_url }}" alt="Match photo" class="img-thumbnail" style="height:60px;width:auto;">
+            <img src="{{ match.found_report.description.photo_url }}" alt="Match photo" class="img-thumbnail blurred-image"  style="height:60px;width:auto;">
           {% endif %}
         </li>
         {% endfor %}

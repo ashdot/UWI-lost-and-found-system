@@ -54,15 +54,7 @@ class User(UserMixin,db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def is_locked(self):
-        if self.lock_until and datetime.now(timezone.utc) < self.lock_until:
-            return True
-        return False
 
-    def register_failed_attempt(self):
-        self.failed_attempted += 1
-        if self.failed_attempted >= 3:
-            self.lock_until = datetime.now(timezone.utc) + timedelta(minutes=30)
 
 
 class LostItemReport(db.Model):
@@ -91,7 +83,8 @@ class LostItemReport(db.Model):
     )
 
     #One-to-Many with Matches 
-    matches = db.relationship('Match', backref='lost_report', cascade="all, delete-orphan")
+    matches = db.relationship('Match', backref='lost_report', cascade="all, delete-orphan",
+    passive_deletes=True)
 
     def __repr__(self):
         return f"<LostItemReport {self.reportID} - User {self.userID}>"
@@ -123,7 +116,6 @@ class LostItemDescription(db.Model):
 
 
 
-#Picture should be optional here 
 class FoundItemReport(db.Model):
     __tablename__ = 'found_item_report'
 
@@ -153,7 +145,8 @@ class FoundItemReport(db.Model):
     )
 
     # 3. Links to the Match table (Useful for the Dashboard)
-    matches = db.relationship('Match', backref='found_report', cascade="all, delete-orphan")
+    matches = db.relationship('Match', backref='found_report', cascade="all, delete-orphan",
+    passive_deletes=True)
 
     def __repr__(self):
         return f"<FoundItemReport {self.reportID} - {self.office_name}>"
@@ -193,8 +186,8 @@ class Match(db.Model):
     matchID = db.Column(db.Integer, primary_key=True)
     
     #Foreign Keys 
-    lost_report_id = db.Column(db.Integer, db.ForeignKey('lost_item_report.reportID'), nullable=False)
-    found_report_id = db.Column(db.Integer, db.ForeignKey('found_item_report.reportID'), nullable=False)
+    lost_report_id = db.Column(db.Integer, db.ForeignKey('lost_item_report.reportID', ondelete="CASCADE"), nullable=False)
+    found_report_id = db.Column(db.Integer, db.ForeignKey('found_item_report.reportID', ondelete="CASCADE"), nullable=False)
 
     similarity_score = db.Column(db.Float, nullable=False) 
     
@@ -215,7 +208,7 @@ class Notification(db.Model):
 
     #Foreign Keys 
     userID = db.Column(db.Integer, db.ForeignKey('User.userID'))
-    match_id = db.Column(db.Integer, db.ForeignKey('match.matchID'))
+    match_id = db.Column(db.Integer, db.ForeignKey('match.matchID',ondelete="CASCADE"))
 
     #Relationship to User 
     user = db.relationship('User', backref='notifications')

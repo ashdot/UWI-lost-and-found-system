@@ -12,9 +12,8 @@ from .forms import LostItemReportForm, FoundItemReportForm
 from .models import LostItemReport, FoundItemReport, LostItemDescription, FoundItemDescription, Match, Notification
 from .extensions import db, mail
 
-#from .match import generate_embeddings, match_lost_found # -> LOCAL VERSION OF CLIP
-#from .match2 import generate_embeddings, match_lost_found # -> CLOUD VERSION OF CLIP
-from .match3 import generate_embeddings, match_lost_found # -> LOCAL VERSION WITH PGVECTOR
+
+from .match import generate_embeddings, match_lost_found # -> LOCAL VERSION WITH PGVECTOR
 
 
 #Views Blueprint that contains all non-auth views of the Application 
@@ -282,7 +281,7 @@ def report_found():
 
                 new_notif = Notification(
                 userID=lost_item.userID,
-                message=f"High match found for your {lost_item.description.item_type}!",
+                message=f"High match found for your item in {lost_item.description.item_type}!",
                 match_id=new_match.matchID 
                 )
                 db.session.add(new_notif)
@@ -382,41 +381,6 @@ def delete_lost_report(report_id):
 
     return redirect(url_for("views_bp.dashboard"))
 
-# @views_bp.route("/report-lost/<int:report_id>/delete", methods=["POST"])
-# @login_required
-# def delete_lost_report(report_id):
-#     report = LostItemReport.query.get_or_404(report_id)
-
-#     # --- 1. Permissions Check ---
-#     # Admin/Staff can delete any report. 
-#     # Students can only delete their own.
-#     can_delete = (
-#         current_user.role in ["admin"] or 
-#         report.userID == current_user.userID
-#     )
-
-#     if not can_delete:
-#         flash("You do not have permission to delete this report.", "danger")
-#         return redirect(url_for("views_bp.dashboard"))
-
-#     # --- 2. The Deletion ---
-#     try:
-#         db.session.delete(report)
-#         db.session.commit()
-#         flash("Report deleted.", "success")
-#     except Exception as e:
-#         db.session.rollback()
-#         flash("Error deleting report.", "danger")
-
-#     # --- 3. The "Smart" Redirect ---
-#     origin = request.args.get('origin')
-
-#     # Only send to Admin Dash if they came from there AND they are actually an admin
-#     if origin == 'admin' and current_user.role == 'admin':
-#         return redirect(url_for("admin_bp.admin_dashboard"))
-    
-#     # Everyone else (Staff, Students, or Admins acting as users) goes here
-#     return redirect(url_for("views_bp.dashboard"))
 
 
 # --- EDIT FOUND REPORT ---
@@ -515,6 +479,7 @@ def list_matches():
             
         print(f"{m.matchID:<4} | {category:<15} | {m.lost_report_id:<7} | {m.found_report_id:<8} | {m.similarity_score:<8.4f} | {m.status}")
 
+#Checks items in the database 
 @views_bp.cli.command("list-items")
 def list_items():
     """Prints all Lost and Found items currently in the database."""

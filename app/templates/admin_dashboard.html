@@ -74,7 +74,7 @@
         <!-- ── Filter Bar ── -->
         <div class="filter-bar">
 
-            <select class="filter-select" id="filterCategory" onchange="applyFilters()">
+            <select class="filter-select" id="filterCategory" aria-label="Filter by category" onchange="applyFilters()">
                 <option value="">All Categories</option>
                 <option value="bags_backpacks">Bags & Backpacks</option>
                 <option value="bottles_flasks">Bottles & Flasks</option>
@@ -94,6 +94,7 @@
                 type="date" 
                 class="filter-input" 
                 id="filterDate" 
+                aria-label="Filter by date"
                 onchange="applyFilters()" 
             />
 
