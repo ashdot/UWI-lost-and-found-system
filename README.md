@@ -14,11 +14,13 @@ The goal of this project is to improve traditional lost-and-found systems by int
 
 ## 👥 Group Members 
 
+| Member | ID | Role |
+|----------|----------|----------|
+| Ashani Mae | 620054256  | Frontend  |
+| Jada-Marie Dotting  | 620166370 | Frontend |
+| Ashle Johnson  | 620164713 | Backend  |
+| Gabriel Smith  | 620162866 | Backend  |
 
-Ashani Mae - 620054256 - 
-Jada-Marie Dotting - 
-Ashle Johnson - 620164713 - 
-Gabriel Smith - 
 
 ## 🛠️ Tech Stack
 
@@ -44,29 +46,36 @@ Python dotenv (.env configuration)
 
 ### 1. Start Docker Database
 
+```bash
 docker-compose up -d
-
+```
 
 ### 2. Create virtual environment
 
+```bash
 python -m venv venv
 source venv/bin/activate 
-
+```
 
 ### 3. Install dependencies
 
+```bash
 pip install -r requirements.txt
-
+```
 
 ### 4. Configure environment variables
 
+```bash
 Use .sample-env file for setup 
+```
 
 ### 5. Initialize database (IMPORTANT)
 
 Run setup script:
 
+```bash
 python setup_db.py
+```
 
 This will:
 Enable pgvector
@@ -76,8 +85,9 @@ Generate 100 test users
 
 ### 6. Run the application
 
+```bash
 flask run 
-
+```
 
 ### ⚠️ Notes
 
