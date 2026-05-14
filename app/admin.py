@@ -13,6 +13,8 @@ from .match import generate_embeddings, match_lost_found
 
 admin_bp = Blueprint('admin_bp', __name__)
 
+# -- ADMIN ROUTES -- 
+
 @admin_bp.route("/admin/dashboard")
 @login_required 
 def admin_dashboard():
