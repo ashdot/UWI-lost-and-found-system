@@ -61,6 +61,7 @@ def dashboard():
 @views_bp.route("/claim-item/<int:match_id>", methods=["POST"])
 @login_required
 def claim_item(match_id):
+
     match = Match.query.get_or_404(match_id)
     
     print(f"DEBUG: User {current_user.userID} is trying to claim match {match_id}")
@@ -73,7 +74,7 @@ def claim_item(match_id):
 
     match.status = 'claimed'
     db.session.commit() # MAKE SURE THIS LINE IS HERE
-    print("DEBUG: Status updated to 'claimed' and committed!")
+    print("DEBUG: Status updated to 'claimed'")
     
     flash("Claimed successfully!", "success")
     return redirect(url_for("views_bp.dashboard"))
@@ -128,15 +129,18 @@ def view_lost_report(report_id):
 def report_lost():
     form = LostItemReportForm()
 
-    if form.validate_on_submit():
+    # FORM FAILED VALIDATION
+    if request.method == "POST" and not form.validate_on_submit():
+        print("!!! FORM VALIDATION FAILED !!!")
+        print(f"Errors: {form.errors}")
+        print(f"Data received: {request.form}")
 
-        if request.method == 'POST':
-            print("!!! FORM VALIDATION FAILED !!!")
-            print(f"Errors: {form.errors}")
-            print(f"Data received: {request.form}")
+    # FORM PASSED VALIDATION
+    if form.validate_on_submit():
         try:
             # 1. Handle Image Upload
             image_url = None
+
             if form.photo.data:
                 upload_result = cloudinary.uploader.upload(form.photo.data,folder="uwi_lost_and_found/lost_items")
                 image_url = upload_result.get('secure_url')
@@ -168,11 +172,6 @@ def report_lost():
                 item_type=form.category.data,
                 text_description=form.description.data,
                 photo_url=image_url,
-
-                #Save to the OLD pickle columns (as your backup)
-                # text_embedding_old=embeddings["text_vec"],
-                # image_embedding_old=embeddings["image_vec"],
-
                 text_embed=embeddings["text_vec"],  
                 image_embed=embeddings["image_vec"], 
                 report_id=lost_item.reportID
@@ -186,7 +185,12 @@ def report_lost():
 
         except Exception as e:
             db.session.rollback()
+
+            import traceback
+
             print(f" ERROR: {e}")
+            traceback.print_exc()
+
             flash("Could not save report. Please try again.", "danger")
 
     return render_template("report_lost.html", form=form)

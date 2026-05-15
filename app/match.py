@@ -1,7 +1,8 @@
 
 import os
 import spacy
-import spacy.cli   
+import spacy.cli  
+import shutil 
 import clip
 import torch
 import requests
@@ -17,7 +18,6 @@ from datetime import datetime
 # PG-VECTOR 
 ##
 
-
 # Global variables initialized as None for Lazy Loading
 nlp = None
 model = None
@@ -29,53 +29,166 @@ def spinner_task(stop_event):
     spin = ['|', '/', '-', '\\']
     idx = 0
     while not stop_event.is_set():
-        sys.stdout.write(f"\r⏳ Downloading AI Model... {spin[idx % 4]}")
+        sys.stdout.write(f"\r⏳ Loading AI Model... {spin[idx % 4]}")
         sys.stdout.flush()
         idx += 1
         time.sleep(0.1)
     sys.stdout.write("\r✅ Download Complete!          \n")
 
 def get_resources():
+    """Lazy loader for AI models."""
+
     global nlp, model, preprocess
-    
+
+    # Load spaCy
     if nlp is None:
         print("🔍 Loading spaCy...")
+
         try:
             nlp = spacy.load("en_core_web_sm")
         except OSError:
             spacy.cli.download("en_core_web_sm")
             nlp = spacy.load("en_core_web_sm")
 
+    # Load CLIP
     if model is None:
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        model_path = os.path.join(base_dir, "ViT-B-32.pt")
 
-        if os.path.exists(model_path):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        local_model_path = os.path.join(base_dir, "ViT-B-32.pt")
+
+        # LOCAL MODEL EXISTS
+        if os.path.exists(local_model_path):
+
             print(f"✅ CLIP loaded locally from project folder.")
-            model, preprocess = clip.load(model_path, device=device)
+
+            model, preprocess = clip.load(
+                local_model_path,
+                device=device
+            )
+
+        # DOWNLOAD + SPINNER
         else:
-            # 1. Start the Spinner
+
+            print("⚠️ Local CLIP model not found.")
+            print("⬇️ Downloading CLIP model...")
+
             stop_spinner = threading.Event()
-            spinner_thread = threading.Thread(target=spinner_task, args=(stop_spinner,))
-            print("⚠️ Local model not found. Waking up AI...")
+            spinner_thread = threading.Thread(
+                target=spinner_task,
+                args=(stop_spinner,)
+            )
+
             spinner_thread.start()
-            
+
             try:
-                # 2. Download/Load the model
-                model, preprocess = clip.load("ViT-B/32", device=device)
-                
-                # 3. Save it to the project folder for next time
-                torch.save(model.state_dict(), model_path)
+                model, preprocess = clip.load(
+                    "ViT-B/32",
+                    device=device
+                )
+
             finally:
-                # 4. Stop the spinner
                 stop_spinner.set()
                 spinner_thread.join()
-            
-            print(f"💾 Model saved to {model_path} for future offline use.")
-        
+
+            # Save downloaded model to project folder
+            clip_cache_dir = os.path.expanduser("~/.cache/clip")
+
+            if os.name == "nt":
+                clip_cache_dir = os.path.join(
+                    os.path.expanduser("~"),
+                    ".cache",
+                    "clip"
+                )
+
+            cached_model_path = os.path.join(
+                clip_cache_dir,
+                "ViT-B-32.pt"
+            )
+
+            if os.path.exists(cached_model_path):
+                shutil.copy2(cached_model_path, local_model_path)
+                print("💾 CLIP model copied to project folder.")
+            else:
+                print("⚠️ Could not locate downloaded CLIP model.")
+
         model.eval()
-    
+
     return nlp, model, preprocess
+
+# def get_resources():
+#     """Lazy loader for AI models."""
+    
+#     global nlp, model, preprocess
+
+#     # Load spaCy
+#     if nlp is None:
+#         print("🔍 Loading spaCy...")
+
+#         try:
+#             nlp = spacy.load("en_core_web_sm")
+#         except OSError:
+#             spacy.cli.download("en_core_web_sm")
+#             nlp = spacy.load("en_core_web_sm")
+
+#     # Load CLIP
+#     if model is None:
+
+#         base_dir = os.path.dirname(os.path.abspath(__file__))
+#         local_model_path = os.path.join(base_dir, "ViT-B-32.pt")
+
+#         # LOCAL MODEL EXISTS
+#         if os.path.exists(local_model_path):
+
+#             print(f"✅ CLIP loaded locally from project folder.")
+
+#             model, preprocess = clip.load(
+#                 local_model_path,
+#                 device=device
+#             )
+
+#         # DOWNLOAD + COPY TO PROJECT
+#         else:
+
+#             print("⚠️ Local CLIP model not found.")
+#             print("⬇️ Downloading CLIP model...")
+
+#             model, preprocess = clip.load(
+#                 "ViT-B/32",
+#                 device=device
+#             )
+
+#             # Find CLIP cache location
+#             clip_cache_dir = os.path.expanduser("~/.cache/clip")
+
+#             # Windows compatibility
+#             if os.name == "nt":
+#                 clip_cache_dir = os.path.join(
+#                     os.path.expanduser("~"),
+#                     ".cache",
+#                     "clip"
+#                 )
+
+#             cached_model_path = os.path.join(
+#                 clip_cache_dir,
+#                 "ViT-B-32.pt"
+#             )
+
+#             # Copy to project folder
+#             if os.path.exists(cached_model_path):
+
+#                 shutil.copy2(
+#                     cached_model_path,
+#                     local_model_path
+#                 )
+
+#                 print("💾 CLIP model copied to project folder.")
+
+#             else:
+#                 print("⚠️ Could not locate downloaded CLIP model.")
+
+#         model.eval()
+
+#     return nlp, model, preprocess
 
 # --- ENCODING FUNCTIONS ---
 

@@ -24,7 +24,8 @@ def admin_dashboard():
         return redirect(url_for("views_bp.dashboard"))
     
     # Retrives all matches 
-    matches = Match.query.all()
+    #matches = Match.query.all()
+    matches = Match.query.filter(Match.status != "confirmed").all()
 
     # Analytics Section
     total_lost = LostItemReport.query.count()
@@ -67,6 +68,7 @@ def manage_claims():
 
     # Fetch all matches that were claimed by users 
     test = Match.query.all()
+    #claimed = Match.query.filter_by(status='claimed').all()
 
     return render_template("admin_claims.html", matches=test)
 

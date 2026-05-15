@@ -83,7 +83,7 @@
     </div>
 
     <!-- Action Bar -->
-    <div class="comparison-actions">
+    <!-- <div class="comparison-actions">
         <form action="{{ url_for('admin_bp.handle_match_action', match_id=match.matchID, action='reject') }}" method="POST">
             <button type="submit" class="action-btn btn-reject">
                 <i class="bi bi-x-lg"></i> Dismiss Match
@@ -95,6 +95,22 @@
                 <i class="bi bi-check-lg"></i> Confirm & Close Claim
             </button>
         </form>
-    </div>
+    </div> -->
+
+    {% if match.status != 'confirmed' %}
+<div class="comparison-actions">
+    <form action="{{ url_for('admin_bp.handle_match_action', match_id=match.matchID, action='reject') }}" method="POST">
+        <button type="submit" class="action-btn btn-reject">
+            <i class="bi bi-x-lg"></i> Dismiss Match
+        </button>
+    </form>
+    
+    <form action="{{ url_for('admin_bp.handle_match_action', match_id=match.matchID, action='claimed') }}" method="POST">
+        <button type="submit" class="action-btn btn-confirm">
+            <i class="bi bi-check-lg"></i> Confirm & Close Claim
+        </button>
+    </form>
+</div>
+{% endif %}
 </section>
 {% endblock %}
